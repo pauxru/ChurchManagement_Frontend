@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
-import { BASE_URL } from "../../public/contants/global-variables";
+import { BASE_ENDPOINT } from "../../public/contants/global-variables";
 import { getAccessToken } from "./api/get-access-token";
 import "../../styles/ChurchDetailsPage.css";
 
@@ -75,7 +75,7 @@ const ChurchDetailsPage = () => {
     
         const token = await getAccessToken();
         const response = await axios.get(
-            `${BASE_URL}/Members/local-church/${LocalChurchID}`, // Adjust API endpoint as needed
+            `${BASE_ENDPOINT}/Members/local-church/${LocalChurchID}`, // Adjust API endpoint as needed
             {
             headers: { Authorization: `Bearer ${token}` },
             }

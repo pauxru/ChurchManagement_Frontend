@@ -1,11 +1,11 @@
 import axios from "axios";
-import { BASE_URL } from "../../../public/contants/global-variables";
+import { BASE_ENDPOINT } from "../../../public/contants/global-variables";
 import { getAccessToken } from "./get-access-token";
 
 const fetchData = async (endpoint: string) => {
   try {
     const token = await getAccessToken();
-    const response = await axios.get(`${BASE_URL}${endpoint}`, {
+    const response = await axios.get(`${BASE_ENDPOINT}${endpoint}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;

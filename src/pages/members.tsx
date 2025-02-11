@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import "../app/globals.css";
-import { CHURCH_NAME, BASE_URL } from "../../public/contants/global-variables";
+import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/contants/global-variables";
 import axios from "axios";
 import { getAccessToken } from "../pages/api/get-access-token";
 
@@ -37,7 +37,7 @@ const MembersPage: React.FC = () => {
   useEffect(() => {
     const fetchDioceseOptions = async () => {
       try {
-        const response = await axios.get<DioceseResponse[]>(`${BASE_URL}/Churches/diocese`, {
+        const response = await axios.get<DioceseResponse[]>(`${BASE_ENDPOINT}/Churches/diocese`, {
           headers: {
             Authorization: `Bearer ${await getAccessToken()}`,
           },
@@ -66,7 +66,7 @@ const MembersPage: React.FC = () => {
 
     if (selectedDiocese) {
       try {
-        const response = await axios.get<ParishResponse[]>(`${BASE_URL}/Churches/diocese-parishes/${selectedDiocese}`, {
+        const response = await axios.get<ParishResponse[]>(`${BASE_ENDPOINT}/Churches/diocese-parishes/${selectedDiocese}`, {
           headers: { Authorization: `Bearer ${await getAccessToken()}` },
         });
         setParishOptions(response.data.map((parish) => ({ id: parish.parishId, name: parish.parishName })));
@@ -84,7 +84,7 @@ const MembersPage: React.FC = () => {
 
     if (selectedParish) {
       try {
-        const response = await axios.get<LocalChurchResponse[]>(`${BASE_URL}/Churches/parish/${selectedParish}`, {
+        const response = await axios.get<LocalChurchResponse[]>(`${BASE_ENDPOINT}/Churches/parish/${selectedParish}`, {
           headers: { Authorization: `Bearer ${await getAccessToken()}` },
         });
         setLocalChurchOptions(response.data.map((localChurch) => ({ id: localChurch.localChurchId, name: localChurch.localChurchName })));

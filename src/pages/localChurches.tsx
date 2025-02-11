@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/router";
-import { CHURCH_NAME, BASE_URL } from "../../public/contants/global-variables";
+import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/contants/global-variables";
 import axios from "axios";
 import "../app/globals.css";
 import { getAccessToken } from "../pages/api/get-access-token";
@@ -47,7 +47,7 @@ const LocalChurchesPage = () => {
     const fetchDioceses = async () => {
       try {
         const token = await getAccessToken();
-        const response = await axios.get(`${BASE_URL}/Churches/diocese`, {
+        const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese`, {
           headers: { Authorization: `Bearer ${token}`, UserEmail: user?.email },
         });
         setDioceseOptions(response.data.map((d: Diocese) => ({ id: d.dioceseId, name: d.dioceseName })));
@@ -71,7 +71,7 @@ const LocalChurchesPage = () => {
     if (dioceseId) {
       try {
         const token = await getAccessToken();
-        const response = await axios.get(`${BASE_URL}/Churches/diocese-parishes/${dioceseId}`, {
+        const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese-parishes/${dioceseId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setParishOptions(response.data.map((p: Parish) => ({ id: p.parishId, name: p.parishName })));
@@ -92,7 +92,7 @@ const LocalChurchesPage = () => {
       try {
         setLoading(true);
         const token = await getAccessToken();
-        const response = await axios.get(`${BASE_URL}/Churches/parish/${parishId}`, {
+        const response = await axios.get(`${BASE_ENDPOINT}/Churches/parish/${parishId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLocalChurches(response.data);
