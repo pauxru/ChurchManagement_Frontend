@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "npm run build && powershell -ExecutionPolicy Bypass -File deploy.ps1"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.5.0",
