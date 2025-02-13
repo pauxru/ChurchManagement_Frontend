@@ -18,9 +18,9 @@ if (Test-Path $DeployPath) {
 Write-Host "📂 Creating deployment directory..."
 New-Item -ItemType Directory -Path $DeployPath | Out-Null
 
-# Copy new build files
+# Copy new build files (excluding .git folder and .env.local file)
 Write-Host "📂 Copying new build files..."
-Copy-Item -Recurse -Force "$BuildPath\*" $DeployPath
+Get-ChildItem -Path $BuildPath -Recurse -Exclude ".git", ".env.local" | Copy-Item -Destination $DeployPath -Recurse -Force
 
 # Restart IIS
 Write-Host "🔄 Restarting IIS..."
