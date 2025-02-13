@@ -26,6 +26,9 @@ Get-ChildItem -Path $BuildPath -Recurse -Exclude ".git", ".env.local" | Copy-Ite
 Write-Host "🔄 Restarting IIS..."
 iisreset
 
+Write-Host "🚀 Starting Next.js server..."
+Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c cd $DeployPath"
+
 # Start Next.js server
 Write-Host "🚀 Starting Next.js server..."
 Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c npm start"
