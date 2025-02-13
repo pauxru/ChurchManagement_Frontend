@@ -1,5 +1,5 @@
 # Paths
-$BuildPath = "$PSScriptRoot\.next"
+$BuildPath = "$PSScriptRoot"
 $DeployPath = "C:\inetpub\wwwroot\PawadTech"
 
 Write-Host "🚀 Starting Deployment Process..."
