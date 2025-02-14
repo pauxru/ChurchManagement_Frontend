@@ -19,6 +19,9 @@ export default function Home() {
   const handleLogout = () => {
     router.push("/api/auth/logout");
   };
+  const handleLogin = () => {
+    router.push("/api/auth/login");
+  };
 
   const isProfileIncomplete = !user?.email_verified;
 
@@ -68,7 +71,7 @@ export default function Home() {
             ) : (
               <li>
                 <span
-                  onClick={() => router.push("/api/auth/custom-login")}
+                  onClick={handleLogin}//() => router.push("src/app/api/auth/custom-login")
                   className="hover:underline cursor-pointer"
                 >
                   Login
