@@ -6,7 +6,7 @@ Write-Host "🚀 Starting Deployment Process..."
 
 # Ensure npm dependencies are installed
 Write-Host "📦 Installing dependencies..."
-# npm install
+npm install
 
 # Remove old deployment if exists
 if (Test-Path $DeployPath) {
