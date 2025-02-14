@@ -68,7 +68,7 @@ export default function Home() {
             ) : (
               <li>
                 <span
-                  onClick={() => router.push("/api/custom-login")}
+                  onClick={() => router.push("/api/auth/custom-login")}
                   className="hover:underline cursor-pointer"
                 >
                   Login
