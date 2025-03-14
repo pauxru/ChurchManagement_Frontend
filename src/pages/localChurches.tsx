@@ -7,6 +7,7 @@ import axios from "axios";
 import "../app/globals.css";
 import { getAccessToken } from "../pages/api/get-access-token";
 import { GetServerSideProps } from "next";
+import { Agent } from "https";
 
 interface LocalChurch {
     localChurchId: number;
@@ -46,7 +47,7 @@ const LocalChurchesPage = () => {
   useEffect(() => {
     const fetchDioceses = async () => {
       try {
-        const httpsAgent = new (require("https").Agent)({ rejectUnauthorized: false });
+        const httpsAgent = new Agent({ rejectUnauthorized: false });
         const token = await getAccessToken();
         const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese`, {
           headers: { Authorization: `Bearer ${token}`, UserEmail: user?.email },
