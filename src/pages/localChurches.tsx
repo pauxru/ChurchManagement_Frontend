@@ -47,11 +47,11 @@ const LocalChurchesPage = () => {
   useEffect(() => {
     const fetchDioceses = async () => {
       try {
-        const httpsAgent = new Agent({ rejectUnauthorized: false });
+        //const httpsAgent = new Agent({ rejectUnauthorized: false });
         const token = await getAccessToken();
-        const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese`, {
+        const response = await axios.get(`${BASE_ENDPOINT}/3`, {
           headers: { Authorization: `Bearer ${token}`, UserEmail: user?.email },
-          httpsAgent,
+          
         });
         setDioceseOptions(response.data.map((d: Diocese) => ({ id: d.dioceseId, name: d.dioceseName })));
       } catch (err) {
