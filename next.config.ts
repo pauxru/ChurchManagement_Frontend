@@ -4,17 +4,6 @@ const nextConfig = {
     domains: ['s.gravatar.com', 'cdn.auth0.com'],
   },
 
-  async rewrites() {
-    return process.env.NODE_ENV === 'development'
-      ? [
-          {
-            source: '/:path*',
-            destination: 'http://localhost:3000/:path*',
-          },
-        ]
-      : [];
-  },
-
   async headers() {
     return [
       // Proxy headers for reverse proxy
