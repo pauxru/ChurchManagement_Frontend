@@ -47,23 +47,34 @@ const LocalChurchesPage = () => {
   useEffect(() => {
     const fetchDioceses = async () => {
       try {
-        //const httpsAgent = new Agent({ rejectUnauthorized: false });
+        console.log("Fetching dioceses...");
+  
         const token = await getAccessToken();
+        console.log("Access token:", token);
+  
+        console.log("Making request to:", `${BASE_ENDPOINT}/3`);
         const response = await axios.get(`${BASE_ENDPOINT}/3`, {
           headers: { Authorization: `Bearer ${token}` },
-          
         });
+  
+        console.log("Response received:", response);
+        
         setDioceseOptions(response.data.map((d: Diocese) => ({ id: d.dioceseId, name: d.dioceseName })));
       } catch (err) {
+        console.error("Error fetching dioceses:", err);
         router.push('/404');
         setError("Failed to fetch dioceses.");
-        console.error(err);
       }
     };
-
-    if (user) fetchDioceses();
+  
+    if (user) {
+      console.log("User is available:", user);
+      fetchDioceses();
+    } else {
+      console.log("User is not available yet.");
+    }
   }, [user]);
-
+ 
   const handleDioceseChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const dioceseId = e.target.value;
     setSelectedDiocese(dioceseId);
