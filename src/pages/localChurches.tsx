@@ -50,7 +50,7 @@ const LocalChurchesPage = () => {
         //const httpsAgent = new Agent({ rejectUnauthorized: false });
         const token = await getAccessToken();
         const response = await axios.get(`${BASE_ENDPOINT}/3`, {
-          headers: { Authorization: `Bearer ${token}`, UserEmail: user?.email },
+          headers: { Authorization: `Bearer ${token}` },
           
         });
         setDioceseOptions(response.data.map((d: Diocese) => ({ id: d.dioceseId, name: d.dioceseName })));
