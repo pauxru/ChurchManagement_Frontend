@@ -53,7 +53,7 @@ const LocalChurchesPage = () => {
         console.log("Access token:", token);
   
         console.log("Making request to:", `api/Churches/diocese`);
-        const response = await axios.get(`/api/Churches/diocese`, {
+        const response = await axios.get(`http://localhost:5000/Churches/diocese`, {
           headers: { Authorization: `Bearer ${token}` },
         });
   
