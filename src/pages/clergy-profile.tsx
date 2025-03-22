@@ -1,52 +1,70 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import styles from "../../styles/ChurchMember.module.css";
-import { ChurchMember } from "../../types/interfaces"
-import { CHURCH_NAME } from "../../public/contants/global-variables";
+import styles from "../../styles/ClergyProfile.module.css";
+import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/contants/global-variables";
+import { useRouter } from "next/router";
 
-const ChurchMemberPortal = () => {
-  const [formData, setFormData] = useState<ChurchMember>({
-    memberID: 234,
-    memberName: "John Doe",
-    memberAlias: "Wa Ciku",
-    memberLocalChurchID: 123,
-    isActive: false,
-    memberSex: "Male",
-    memberAge: 35,
-    memberSince: "2005-08-15",
-    memberEmail: "johndoe@example.com",
-    memberPhoneNum: "123-456-7890",
-    memberRole: "Elder",
-    baptismDay: "2010-06-20",
-    baptisedBy: "Pastor James",
-    baptismChurch: "St. Peter's Church",
-    baptismRepresentative: "",
-    confirmationDay: "",
-    confirmedBy: "",
-    confirmationChurch: "",
-    confirmationWitness: "",
-    consecrationDay: "",
-    consecratedBy: "",
-    consecrationChurch: "",
-    consecrationRepresentative: "",
-  });
+interface Clergy {
+  clergyID: number;
+  clergyName: string;
+  clergyAlias: string;
+  churchMemberID: string;
+  clergyRank: string;
+  ordinationDate: string;
+  ordainedBy: string;
+  ordinationChurch: string;
+  salary: number;
+  description: string;
+}
 
+
+const ClergyProfile = () => {
+  const router = useRouter();
+  const { clergyID } = router.query;
+  const [formData, setFormData] = useState<Clergy | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [bio, setBio] = useState("This is where you can describe yourself...");
   const [isEditingBio, setIsEditingBio] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchClergyDetails = async (id: number) => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${BASE_ENDPOINT}/Clergy/get-clergy/${id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch clergy data");
+        }
+        const data: Clergy = await response.json();
+        setFormData(data);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "An unknown error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    if (clergyID && typeof clergyID === "string") {
+      const idNumber = parseInt(clergyID, 10);
+      if (!isNaN(idNumber)) {
+        fetchClergyDetails(idNumber);
+      }
+    }
+  }, [clergyID]);
+  
+  
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
   const handleEditField = (fieldName: string) => {
     setEditingField(fieldName);
   };
-
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -67,20 +85,20 @@ const ChurchMemberPortal = () => {
     setBio(e.target.value);
   };
 
-  const renderField = (label: string, fieldName: string) => (
+  const renderField = (label: string, fieldName: keyof Clergy) => (
     <div className={styles.field}>
       <span className={styles.label}>{label}:</span>
       {editingField === fieldName ? (
         <input
           type="text"
           name={fieldName}
-          value={formData[fieldName as keyof ChurchMember]?.toString() || ""}
+          value={formData?.[fieldName]?.toString() || ""}
           onChange={handleInputChange}
           className={styles.input}
         />
       ) : (
         <span className={styles.value}>
-          {formData[fieldName as keyof ChurchMember] || "Not provided"}
+          {formData?.[fieldName] || "Not provided"}
         </span>
       )}
       <Image
@@ -95,17 +113,14 @@ const ChurchMemberPortal = () => {
     </div>
   );
 
+  if (loading) return <p>Loading clergy data...</p>;
+  if (error) return <p>Error: {error}</p>;
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>{CHURCH_NAME} Church Clergy Portal</h1>
 
-      {/* Contact Information Card */}
       <div className={styles.card}>
-        <div
-          className={`${styles.statusLabel} ${formData.isActive ? styles.active : styles.inactive}`}
-        >
-          {formData.isActive ? "Active" : "Inactive"}
-        </div>
         <div className={styles.profileSection}>
           <div className={styles.imageWrapper}>
             <img
@@ -145,45 +160,25 @@ const ChurchMemberPortal = () => {
             </button>
           </div>
           <div className={styles.infoSection}>
-            {renderField("Member Number", "memberID")}
-            {renderField("Name", "memberName")}
-            {renderField("Alias", "memberAlias")}
-            {renderField("Local Church ID", "memberLocalChurchID")}
-            {renderField("Email", "memberEmail")}
-            {renderField("Phone Number", "memberPhoneNum")}
-            {renderField("Role", "memberRole")}
-            {renderField("Member Since", "memberSince")}
-            {renderField("Age", "memberAge")}
-            {renderField("Sex", "memberSex")}
+            {formData && (
+              <>
+                {renderField("Clergy ID", "clergyID")}
+                {renderField("Name", "clergyName")}
+                {renderField("Alias", "clergyAlias")}
+                {renderField("Church Member ID", "churchMemberID")}
+                {renderField("Rank", "clergyRank")}
+                {renderField("Ordination Date", "ordinationDate")}
+                {renderField("Ordained By", "ordainedBy")}
+                {renderField("Ordination Church", "ordinationChurch")}
+                {renderField("Salary", "salary")}
+                {renderField("Description", "description")}
+              </>
+            )}
           </div>
-        </div>
-      </div>
-
-
-      {/* Other Cards */}
-      <div className={styles.cards}>
-        
-
-        {/* Sacramental Details */}
-        <div className={styles.infoSection}>
-          <h2 className={styles.cardTitle}>Sacramental Details</h2>
-          {renderField("Baptism Day", "baptismDay")}
-          {renderField("Baptised By", "baptisedBy")}
-          {renderField("Baptism Church", "baptismChurch")}
-          {renderField("Baptism godparent", "baptismRepresentative")}
-          {renderField("Confirmation Day", "confirmationDay")}
-          {renderField("Confirmed By", "confirmedBy")}
-          {renderField("Confirmaton Church", "confirmationChurch")}
-          {renderField("Confirmation Witness", "confirmationWitness")}
-          {renderField("Consecration Day", "consecrationDay")}
-          {renderField("Consecrated By", "consecratedBy")}
-          {renderField("Consecration Church", "consecrationChurch")}
-          {renderField("Consecration godparent", "consecrationRepresentative")}
-          
         </div>
       </div>
     </div>
   );
 };
 
-export default ChurchMemberPortal;
+export default ClergyProfile;

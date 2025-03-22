@@ -86,6 +86,15 @@ const ChurchDetailsPage = () => {
         setError("Failed to fetch members: " + err);
         }
     };
+
+    const handleClergyClick = (clergyId: number) => {
+      router.push({
+        pathname: './clergy-profile',
+        query: { ClergyId: JSON.stringify(clergyId) },
+      });
+    };
+
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const galleryImages = Array.from({ length: 10 }).map((_, index) => 
     `/images/gallery/church${index + 1}.jpg`
@@ -216,27 +225,31 @@ const ChurchDetailsPage = () => {
     <h2>Vestry</h2>
     {/* Clergy Section */}
     <div className="clergy-container">
-
-        {clergy && clergy.length > 0 ? (
+      {clergy && clergy.length > 0 ? (
         clergy.map((member) => (
-            <div className="clergy-card" key={member.clergyID}>
+          <div
+            className="clergy-card"
+            key={member.clergyID}
+            onClick={() => handleClergyClick(member.clergyID)}
+            style={{ cursor: "pointer" }} // Makes it clear it's clickable
+          >
             <p className="clergy-rank">{getClergyRankText(member.clergyRank)}</p>
             <img
-                src={member.clergyPicture || "/images/priest.svg"}
-                alt={member.clergyName}
-                className="clergy-portrait"
+              src={member.clergyPicture || "/images/priest.svg"}
+              alt={member.clergyName}
+              className="clergy-portrait"
             />
             <div className="clergy-details">
-                <h3 className="clergy-name">{member.clergyName}</h3>
-                <p className="clergy-description">
+              <h3 className="clergy-name">{member.clergyName}</h3>
+              <p className="clergy-description">
                 {member.description || "No description available."}
-                </p>
+              </p>
             </div>
-            </div>
+          </div>
         ))
-        ) : (
+      ) : (
         <p>No Clergy Found</p>
-        )}
+      )}
     </div>
     
     {/* Leadership Boards Section */}
