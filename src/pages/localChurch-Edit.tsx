@@ -88,6 +88,7 @@ const ChurchDetailsPage = () => {
     };
 
     const handleClergyClick = (clergyId: number) => {
+      console.log("HERE at handleClergyClick:: ", clergyId);
       router.push({
         pathname: './clergy-profile',
         query: { ClergyId: JSON.stringify(clergyId) },

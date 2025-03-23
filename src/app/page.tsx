@@ -38,7 +38,7 @@ export default function Home() {
               <a href="#features" className="hover:underline">Features</a>
             </li>
             <li>
-              <a href="#contact" className="hover:underline">Contact</a>
+            <span onClick={() => router.push("/Transfers")} className="hover:underline cursor-pointer">Transfers</span>
             </li>
             <li>
               <span onClick={() => router.push("/localChurches")} className="hover:underline cursor-pointer">Churches</span>

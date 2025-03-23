@@ -3,6 +3,7 @@ import Image from "next/image";
 import styles from "../../styles/ClergyProfile.module.css";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/contants/global-variables";
 import { useRouter } from "next/router";
+import { getAccessToken } from "./api/get-access-token";
 
 interface Clergy {
   clergyID: number;
@@ -17,10 +18,9 @@ interface Clergy {
   description: string;
 }
 
-
 const ClergyProfile = () => {
   const router = useRouter();
-  const { clergyID } = router.query;
+  const clergyID = router.query.ClergyId;
   const [formData, setFormData] = useState<Clergy | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [profilePic, setProfilePic] = useState<string | null>(null);
@@ -30,40 +30,38 @@ const ClergyProfile = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchClergyDetails = async (id: number) => {
-      setLoading(true);
-      try {
-        const response = await fetch(`${BASE_ENDPOINT}/Clergy/get-clergy/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch clergy data");
-        }
-        const data: Clergy = await response.json();
-        setFormData(data);
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "An unknown error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    if (clergyID && typeof clergyID === "string") {
-      const idNumber = parseInt(clergyID, 10);
-      if (!isNaN(idNumber)) {
-        fetchClergyDetails(idNumber);
-      }
+    if (!router.isReady || !clergyID) return;
+
+    const idNumber = parseInt(clergyID as string, 10);
+    if (!isNaN(idNumber)) {
+      fetchClergyDetails(idNumber);
     }
-  }, [clergyID]);
-  
-  
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
+  }, [router.isReady, router.query]);
+
+  const fetchClergyDetails = async (id: number) => {
+    setLoading(true);
+    try {
+      const token = await getAccessToken();
+      const response = await fetch(`${BASE_ENDPOINT}/Clergy/get-clergy/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch clergy data. Status: ${response.status}`);
+      }
+
+      const data: Clergy = await response.json();
+      setFormData(data);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "An unknown error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEditField = (fieldName: string) => {
-    setEditingField(fieldName);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,10 +83,25 @@ const ClergyProfile = () => {
     setBio(e.target.value);
   };
 
-  const renderField = (label: string, fieldName: keyof Clergy) => (
+  const ranks: Record<number, string> = {
+    1: "Evangelist",
+    2: "Church Leader",
+    3: "Deacon",
+    4: "Pastor",
+    5: "Archdeacon",
+    6: "Bishop",
+    7: "Archbishop",
+  };
+
+  const getClergyRankText = (rank: string): string => {
+    const rankNumber = parseInt(rank, 10);
+    return ranks[rankNumber] || "Unknown Rank";
+  };
+
+  const renderField = (label: string, fieldName: keyof Clergy, editable: boolean = true) => (
     <div className={styles.field}>
       <span className={styles.label}>{label}:</span>
-      {editingField === fieldName ? (
+      {editable && editingField === fieldName ? (
         <input
           type="text"
           name={fieldName}
@@ -98,18 +111,22 @@ const ClergyProfile = () => {
         />
       ) : (
         <span className={styles.value}>
-          {formData?.[fieldName] || "Not provided"}
+          {fieldName === "clergyRank"
+            ? getClergyRankText(formData?.clergyRank || "")
+            : formData?.[fieldName] || "Not provided"}
         </span>
       )}
-      <Image
-        src="/images/edit.svg"
-        alt="Edit Icon"
-        width={20}
-        height={20}
-        className={styles.editIcon}
-        onClick={() => handleEditField(fieldName)}
-        title="Edit"
-      />
+      {editable && (
+        <Image
+          src="/images/edit.svg"
+          alt="Edit Icon"
+          width={20}
+          height={20}
+          className={styles.editIcon}
+          onClick={() => setEditingField(fieldName)}
+          title="Edit"
+        />
+      )}
     </div>
   );
 
@@ -129,12 +146,7 @@ const ClergyProfile = () => {
               className={styles.profileImage}
             />
             <label htmlFor="uploadImage" className={styles.uploadButton}>
-              <Image
-                src="/images/upload.svg"
-                alt="Upload Icon"
-                width={20}
-                height={20}
-              />
+              <Image src="/images/upload.svg" alt="Upload Icon" width={20} height={20} />
             </label>
             <input
               type="file"
@@ -147,11 +159,7 @@ const ClergyProfile = () => {
           <div className={styles.bioSection}>
             <h3 className={styles.bioTitle}>About me</h3>
             {isEditingBio ? (
-              <textarea
-                value={bio}
-                onChange={handleBioChange}
-                className={styles.bioInput}
-              />
+              <textarea value={bio} onChange={handleBioChange} className={styles.bioInput} />
             ) : (
               <p className={styles.bioText}>{bio}</p>
             )}
@@ -162,11 +170,11 @@ const ClergyProfile = () => {
           <div className={styles.infoSection}>
             {formData && (
               <>
-                {renderField("Clergy ID", "clergyID")}
-                {renderField("Name", "clergyName")}
+                {renderField("Clergy ID", "clergyID", false)}
+                {renderField("Name", "clergyName", false)}
                 {renderField("Alias", "clergyAlias")}
                 {renderField("Church Member ID", "churchMemberID")}
-                {renderField("Rank", "clergyRank")}
+                {renderField("Rank", "clergyRank", false)}
                 {renderField("Ordination Date", "ordinationDate")}
                 {renderField("Ordained By", "ordainedBy")}
                 {renderField("Ordination Church", "ordinationChurch")}

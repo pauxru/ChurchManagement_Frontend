@@ -52,8 +52,8 @@ const LocalChurchesPage = () => {
         const token = await getAccessToken();
         console.log("Access token:", token);
   
-        console.log("Making request to:", `/api/Churches/diocese`);
-        const response = await axios.get(`/api/Churches/diocese`, {
+        console.log("Making request to:", `${BASE_ENDPOINT}/Churches/diocese`);
+        const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese`, {
           headers: { Authorization: `Bearer ${token}` },
         });
   
