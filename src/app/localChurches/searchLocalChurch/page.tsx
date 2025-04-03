@@ -1,11 +1,12 @@
+'use client'
 import { useEffect, useState } from "react";
 import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useRouter } from "next/router";
-import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/contants/global-variables";
+import { useRouter } from "next/navigation";
+import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import axios from "axios";
-import "../app/globals.css";
-import { getAccessToken } from "../pages/api/get-access-token";
+//import "../../globlas.css";
+import { getAccessToken } from "../../api/get-access-token";
 import { GetServerSideProps } from "next";
 
 
@@ -44,6 +45,12 @@ const LocalChurchesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push(`/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`);
+    }
+  }, [user, isLoading, router]);
+  
   useEffect(() => {
     const fetchDioceses = async () => {
       try {
@@ -120,10 +127,8 @@ const LocalChurchesPage = () => {
   };
 
   const handleNavigateToDetails = (localChurchId: number) => {
-    router.push({
-      pathname: './localChurch-Edit',
-      query: { LocalChurchID: JSON.stringify(localChurchId) },
-    });
+    router.push(`/localChurches/viewLocalChurch/?LocalChurchID=${localChurchId}`);
+
   };
 
   if (isLoading || loading) return <div>Loading...</div>;
@@ -206,6 +211,5 @@ const LocalChurchesPage = () => {
   );
 };
 
-export const getServerSideProps: GetServerSideProps = withPageAuthRequired();
 
 export default LocalChurchesPage;

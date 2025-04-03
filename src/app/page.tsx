@@ -14,7 +14,7 @@ export default function Home() {
   if (error) return <div>{error.message}</div>;
 
   const handleProfileClick = () => {
-    router.push('/profile-completion');
+    router.push('/profile/editProfile');
   };
   const handleLogout = () => {
     router.push("/api/auth/logout");
@@ -38,13 +38,13 @@ export default function Home() {
               <a href="#features" className="hover:underline">Features</a>
             </li>
             <li>
-            <span onClick={() => router.push("/Transfers")} className="hover:underline cursor-pointer">Transfers</span>
+            <span onClick={() => router.push("/transfers")} className="hover:underline cursor-pointer">Transfers</span>
             </li>
             <li>
-              <span onClick={() => router.push("/localChurches")} className="hover:underline cursor-pointer">Churches</span>
+              <span onClick={() => router.push("/localChurches/searchLocalChurch")} className="hover:underline cursor-pointer">Churches</span>
             </li>
             <li>
-              <span onClick={() => router.push("/members")} className="hover:underline cursor-pointer">Members</span>
+              <span onClick={() => router.push("/members/searchMembers")} className="hover:underline cursor-pointer">Members</span>
             </li>
 
             {user ? (

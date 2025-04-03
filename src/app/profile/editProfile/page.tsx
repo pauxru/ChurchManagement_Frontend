@@ -1,48 +1,39 @@
-import { useState } from "react";
-import { withPageAuthRequired } from '@auth0/nextjs-auth0';
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { useRouter } from "next/router";
-import styles from "../../styles/ChurchMember.module.css";
-import { ChurchMember } from "../../types/interfaces";
-import { CHURCH_NAME } from "../../public/contants/global-variables";
+import styles from "../ChurchMember.module.css";
+import { ChurchMember } from "../../../../types/interfaces";
+import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 
 const ChurchMemberPortal: React.FC = () => {
-  const [formData, setFormData] = useState<ChurchMember>({
-    memberID: 234,
-    memberName: "John Doe",
-    memberAlias: "Wa Ciku",
-    memberLocalChurchID: 123,
-    isActive: false,
-    memberSex: "Male",
-    memberAge: 35,
-    memberSince: "2005-08-15",
-    memberEmail: "johndoe@example.com",
-    memberPhoneNum: "123-456-7890",
-    memberRole: "Elder",
-    baptismDay: "2010-06-20",
-    baptisedBy: "Pastor James",
-    baptismChurch: "St. Peter's Church",
-    baptismRepresentative: "",
-    confirmationDay: "",
-    confirmedBy: "",
-    confirmationChurch: "",
-    confirmationWitness: "",
-    consecrationDay: "",
-    consecratedBy: "",
-    consecrationChurch: "",
-    consecrationRepresentative: "",
-  });
-
+  const [formData, setFormData] = useState<ChurchMember | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [bio, setBio] = useState("This is where you can describe yourself...");
   const [isEditingBio, setIsEditingBio] = useState(false);
+  const searchParams = useSearchParams();
+  const memberID = searchParams.get("memberID");
 
-  const router = useRouter();
+  useEffect(() => {
+    const fetchMemberData = async () => {
+      try {
+        const response = await fetch(`${BASE_ENDPOINT}/Profile/get-profile/${memberID}`); // Adjust endpoint
+        if (!response.ok) {
+          throw new Error("Failed to fetch member data");
+        }
+        const data: ChurchMember = await response.json();
+        setFormData(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+    fetchMemberData();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (!formData) return;
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -71,8 +62,7 @@ const ChurchMemberPortal: React.FC = () => {
   };
 
   const handleLinkProfile = () => {
-    router.push("/link-church-records");
-  };
+  }
 
   const renderField = (label: string, fieldName: keyof ChurchMember) => (
     <div className={styles.field}>
@@ -81,13 +71,13 @@ const ChurchMemberPortal: React.FC = () => {
         <input
           type="text"
           name={fieldName}
-          value={formData[fieldName]?.toString() || ""}
+          value={formData?.[fieldName]?.toString() || ""}
           onChange={handleInputChange}
           className={styles.input}
         />
       ) : (
         <span className={styles.value}>
-          {formData[fieldName] || "Not provided"}
+          {formData?.[fieldName] || "Not provided"}
         </span>
       )}
       <Image
@@ -101,6 +91,10 @@ const ChurchMemberPortal: React.FC = () => {
       />
     </div>
   );
+
+  if (!formData) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <div className={styles.container}>
@@ -196,5 +190,4 @@ const ChurchMemberPortal: React.FC = () => {
   );
 };
 
-export const getServerSideProps = withPageAuthRequired();
 export default ChurchMemberPortal;

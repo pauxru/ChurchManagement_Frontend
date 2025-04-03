@@ -1,9 +1,10 @@
+"use effect"
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "../../styles/ClergyProfile.module.css";
-import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/contants/global-variables";
-import { useRouter } from "next/router";
-import { getAccessToken } from "./api/get-access-token";
+import { CHURCH_NAME, BASE_ENDPOINT } from "../../../public/contants/global-variables";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getAccessToken } from "../api/get-access-token";
 
 interface Clergy {
   clergyID: number;
@@ -20,7 +21,8 @@ interface Clergy {
 
 const ClergyProfile = () => {
   const router = useRouter();
-  const clergyID = router.query.ClergyId;
+  const searchParams = useSearchParams();
+  const clergyID = searchParams.get("ClergyId");
   const [formData, setFormData] = useState<Clergy | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [profilePic, setProfilePic] = useState<string | null>(null);
@@ -30,13 +32,13 @@ const ClergyProfile = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!router.isReady || !clergyID) return;
+    if (!clergyID) return;
 
-    const idNumber = parseInt(clergyID as string, 10);
+    const idNumber = parseInt(clergyID, 10);
     if (!isNaN(idNumber)) {
       fetchClergyDetails(idNumber);
     }
-  }, [router.isReady, router.query]);
+  }, [clergyID]);
 
   const fetchClergyDetails = async (id: number) => {
     setLoading(true);

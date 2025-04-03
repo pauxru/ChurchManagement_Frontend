@@ -1,0 +1,369 @@
+/* Church Details Page Styles */
+.churchDetailsPage {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* Hero Section */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.heroImage {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.heroTitle {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.heroDescription {
+  font-size: 1.2rem;
+}
+
+/* Sections */
+.section {
+  margin-top: 40px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Church Details */
+.detailsContainer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: stretch; /* Ensures all cards are the same height */
+}
+
+/* General Card Styling */
+.card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  flex: 1; /* Makes all cards take up equal space */
+  min-width: 300px; /* Prevents stacking too soon on smaller screens */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centers content inside */
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow for better aesthetics */
+}
+
+/* Location Card */
+.location {
+  /* Same styling as .card for uniformity */
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  flex: 1; /* Makes it equal in size to the details card */
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.locationIcon {
+  width: 50px;
+  margin-bottom: 10px;
+}
+
+.googleMapsLink {
+  color: blue;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.googleMapsLink:hover {
+  text-decoration: underline;
+}
+
+/* Gallery */
+.carouselContainer {
+  display: flex;
+  overflow-x: auto;
+  gap: 15px;
+  padding: 10px;
+  scroll-behavior: smooth;
+}
+
+.carouselImage {
+  width: 300px; /* Make the image bigger */
+  height: 225px; /* Adjust height accordingly */
+  object-fit: cover;
+  border-radius: 10px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.carouselImage:hover {
+  transform: scale(1.1); /* Slightly more scaling */
+}
+
+.active {
+  border: 3px solid blue;
+}
+
+.inactive {
+  opacity: 0.7;
+}
+
+
+/* Vestry */
+.clergyContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.clergyCard {
+  background: #f4f4f4;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers children horizontally */
+  justify-content: center; /* Centers children vertically if needed */
+}
+
+.clergyPortrait {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+
+.clergyName {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Events */
+.events {
+  margin-top: 30px;
+}
+
+.eventCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.eventCard {
+  background: #eaeaea;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: left;
+  width: 280px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.eventCard:hover {
+  background: #ddd;
+}
+
+.eventCoverPhoto {
+  width: 100%;
+  height: 150px;
+  object-fit: contain; /* Ensures the full image fits without cropping */
+  border-radius: 10px 10px 0 0; /* Adjusts only the top corners */
+  background-color: #f4f4f4; /* Optional: Adds a background in case the image doesn't fully cover the space */
+}
+
+
+/* Members */
+.membersTableContainer {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.membersTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.membersTable th, 
+.membersTable td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.membersTable th {
+  background: #007bff;
+  color: white;
+}
+
+.fetchMembersButton {
+  background: blue;
+  color: white;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.fetchMembersButton:hover {
+  background: darkblue;
+}
+
+.errorMessage {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+.announcementsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.announcementCard {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  width: 320px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.announcementCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.announcementHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.announcementIcon {
+  width: 32px;
+  height: 32px;
+}
+
+.announcementTitle {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.announcementLevel {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #4a4a4a;
+}
+
+.announcementDescription {
+  font-size: 1rem;
+  color: #666;
+}
+
+.announcementDate {
+  font-size: 0.9rem;
+  color: #777;
+  font-weight: bold;
+}
+.leadershipBoardCard {
+  background: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 700px;
+  margin: 2rem auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.leadershipBoardCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.leadershipLevel {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #444;
+}
+
+.leadershipDescription {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.boardMembers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 1rem;
+}
+
+.boardMembers p {
+  background: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+}
+
+.boardDate, .boardTenure {
+  font-size: 0.9rem;
+  color: #777;
+  font-weight: bold;
+}

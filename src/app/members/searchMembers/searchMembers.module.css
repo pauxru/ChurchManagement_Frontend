@@ -1,0 +1,61 @@
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.container h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.selectRow {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap; /* make sure it stacks on small screens */
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.selectRow select {
+    flex: 1 1 200px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.selectRow select:disabled {
+    background-color: #eaeaea;
+    cursor: not-allowed;
+}
+
+.selectRow select:focus {
+    border-color: #0070f3;
+    outline: none;
+}
+
+.fetchButton {
+    padding: 10px 20px;
+    background-color: #0070f3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.fetchButton:hover {
+    background-color: #005bb5;
+}
+
+.fetchButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}

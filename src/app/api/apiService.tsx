@@ -7,6 +7,7 @@ const fetchData = async (endpoint: string) => {
     const token = await getAccessToken();
     const response = await axios.get(`${BASE_ENDPOINT}${endpoint}`, {
       headers: { Authorization: `Bearer ${token}` },
+      timeout:5000
     });
     return response.data;
   } catch (error) {
