@@ -1,10 +1,11 @@
-"use effect"
+"use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import styles from "../../styles/ClergyProfile.module.css";
+import styles from "./ClergyProfile.module.css";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../public/contants/global-variables";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { getAccessToken } from "../api/get-access-token";
+import { Suspense } from 'react';
 
 interface Clergy {
   clergyID: number;
@@ -20,7 +21,7 @@ interface Clergy {
 }
 
 const ClergyProfile = () => {
-  const router = useRouter();
+
   const searchParams = useSearchParams();
   const clergyID = searchParams.get("ClergyId");
   const [formData, setFormData] = useState<Clergy | null>(null);
@@ -136,6 +137,7 @@ const ClergyProfile = () => {
   if (error) return <p>Error: {error}</p>;
 
   return (
+    <Suspense fallback={<div>Loading clergy details...</div>}>
     <div className={styles.container}>
       <h1 className={styles.title}>{CHURCH_NAME} Church Clergy Portal</h1>
 
@@ -188,6 +190,7 @@ const ClergyProfile = () => {
         </div>
       </div>
     </div>
+    </Suspense>
   );
 };
 

@@ -103,3 +103,31 @@ export interface LeadershipBoard {
     vSecretaryName?: string;
     vTreasurerName?: string;
 }
+
+// types/UserProfile.ts
+export interface UserProfile {
+  userID: string;
+  dateCreated: string; // You might use Date but string can be useful for serialized data
+  memberName: string;
+  memberAge?: number;
+  memberSince?: string; // Format as string or Date
+  memberEmail: string;
+  memberPhoneNum?: string;
+  memberRole?: string;
+  memberLocalChurchID?: number;
+  memberSex?: string; // Use 'M', 'F', etc. or you can use an enum for better clarity
+  baptismDay?: string; // Use string or Date
+  baptisedBy?: string;
+  baptismChurch?: string;
+  baptismRepresentative?: string;
+  confirmationDay?: string; // Use string or Date
+  confirmedBy?: string;
+  confirmationChurch?: string;
+  confirmationWitness?: string;
+  consecrationDay?: string; // Use string or Date
+  consecratedBy?: string;
+  consecrationChurch?: string;
+  consecrationRepresentative?: string;
+  isActive?: boolean;
+  alias?: string;
+}

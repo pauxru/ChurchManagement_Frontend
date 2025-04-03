@@ -1,13 +1,14 @@
-import React from 'react';
-import { useRouter } from 'next/router';
+
+//import { useRouter } from 'next/router';
 import Head from 'next/head';
 
 const PageNotFound: React.FC = () => {
-  const router = useRouter();
+  //const [isClient, setIsClient] = useState(false);
+  //const router = useRouter();
 
-  const handleRetry = () => {
-    router.reload(); // Reloads the current page
-  };
+
+
+  // Don't render router-dependent content until the component has mounted on the client side
 
   return (
     <>
@@ -21,12 +22,7 @@ const PageNotFound: React.FC = () => {
           Oops! The service you are looking for is currently unavailable or does not exist.
         </p>
         <div style={styles.buttonGroup}>
-          <button style={styles.button} onClick={() => router.push('/')}>
-            Go Back Home
-          </button>
-          <button style={styles.retryButton} onClick={handleRetry}>
-            Retry
-          </button>
+          
         </div>
       </div>
     </>
@@ -82,9 +78,6 @@ const styles = {
     borderRadius: '5px',
     cursor: 'pointer',
     transition: 'background-color 0.3s ease',
-  },
-  buttonHover: {
-    backgroundColor: '#0056b3',
   },
 };
 

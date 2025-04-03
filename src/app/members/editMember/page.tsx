@@ -1,7 +1,8 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation"; // ✅ Correct import
 import axios from "axios";
-import "../app/globals.css";
 
 interface ChurchMember {
   memberID: number;
@@ -16,20 +17,26 @@ interface ChurchMember {
 
 const MemberForm: React.FC = () => {
   const router = useRouter();
-  const { member } = router.query;
   const [memberData, setMemberData] = useState<Partial<ChurchMember>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Retrieve query params correctly in App Router
+    const searchParams = new URLSearchParams(window.location.search);
+    const member = searchParams.get("member");
+
     if (member) {
-      const parsedMember = JSON.parse(member as string);
-      if (parsedMember) {
+      try {
+        const parsedMember = JSON.parse(member);
         setMemberData(parsedMember);
+      } catch (err) {
+        console.error("Error parsing member data:", err);
       }
     }
+
     setLoading(false);
-  }, [member]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

@@ -35,7 +35,6 @@ interface Diocese {
 const DiocesePage = () => {
   const [diocese, setDiocese] = useState<Diocese | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDioceseData();
@@ -50,13 +49,13 @@ const DiocesePage = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch data. Status: ${response.status}`);
+       console.log(`Failed to fetch data. Status: ${response.status}`);
       }
 
       const data: Diocese = await response.json();
       setDiocese(data);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "An unknown error occurred");
+    } catch {
+      console.log("An unknown error occurred");
     } finally {
       setLoading(false);
     }
@@ -93,7 +92,6 @@ const DiocesePage = () => {
   };
 
   if (loading) return <p>Loading diocese data...</p>;
-  if (error) return <p>Error: {error}</p>;
   if (!diocese) return <p>No data available</p>;
 
   return (

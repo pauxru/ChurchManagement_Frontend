@@ -5,6 +5,9 @@ import axios from "axios";
 import { BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import { getAccessToken } from "../../api/get-access-token";
 import styles from "./ChurchDetailsPage.module.css";
+import { Suspense } from 'react';
+
+
 
 
 import { LeadershipBoard, LocalChurch, Event, Clergy, ChurchMember, Announcement } from "../../../../types/interfaces";
@@ -198,206 +201,208 @@ const ChurchDetailsPage = () => {
   
 
   return (
-    <div className={styles.churchDetailsPage}>
-      {/* Hero Section */}
-      <div className={styles.hero}>
-        <img src={church.heroImage || "/images/hero.jpg"} alt="Church" className={styles.heroImage} />
-        <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>{church.localChurchName}</h1>
-          <p className={styles.heroDescription}>{church.localChurchDescription}</p>
-        </div>
-      </div>
-
-      {/* Details Section */}
-      <section className={styles.section}>
-        <h2>Church Details</h2>
-        <div className={styles.detailsContainer}>
-          <div className={styles.card}>
-            <p><strong>Address:</strong> {church.localChurchAddress}</p>
-            <p><strong>Phone:</strong> {church.localChurchPhone}</p>
-            <p><strong>Email:</strong> {church.localChurchEmail}</p>
-          </div>
-          <div className={styles.location}>
-            <h3>Location</h3>
-            <img src="/images/location.svg" alt="Location Icon" className={styles.locationIcon} />
-            <p>{church.localChurchLocation}</p>
-            <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className={styles.googleMapsLink}>
-              Open in Google Maps
-            </a>
+    <Suspense fallback={<div>Loading church details...</div>}>
+      <div className={styles.churchDetailsPage}>
+        {/* Hero Section */}
+        <div className={styles.hero}>
+          <img src={church.heroImage || "/images/hero.jpg"} alt="Church" className={styles.heroImage} />
+          <div className={styles.heroContent}>
+            <h1 className={styles.heroTitle}>{church.localChurchName}</h1>
+            <p className={styles.heroDescription}>{church.localChurchDescription}</p>
           </div>
         </div>
-      </section>
 
-      <section className={styles.section}>
-      <h2>Gallery</h2>
-      <div className={styles.carouselContainer}>
-        {galleryImages.map((image, index) => (
-          <img
-            key={index}
-            src={`/images/gallery/${image}`} // Dynamically prepend folder path
-            alt={`Gallery Image ${index + 1}`}
-            className={`${styles.carouselImage} ${index === currentSlide ? styles.active : styles.inactive}`}
-          />
-        ))}
-      </div>
-    </section>
-
-
-      {/* Vestry Section */}
-      <section className={`${styles.section} ${styles.vestrySection}`}>
-        <h2>Vestry</h2>
-        
-        {/* Clergy Members */}
-        <div className={styles.clergyContainer}>
-          {clergy && clergy.length > 0 ? (
-            clergy.map((member) => (
-              <div
-                className={styles.clergyCard}
-                key={member.clergyID}
-                onClick={() => handleClergyClick(member.clergyID)}
-                style={{ cursor: "pointer" }}
-              >
-                <p className={styles.clergyRank}>{getClergyRankText(member.clergyRank)}</p>
-                <img
-                  src={member.clergyPicture || "/images/priest.svg"}
-                  alt={member.clergyName}
-                  className={styles.clergyPortrait}
-                />
-                <div className={styles.clergyDetails}>
-                  <h3 className={styles.clergyName}>{member.clergyName}</h3>
-                  <p className={styles.clergyDescription}>{member.description || "No description available."}</p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No Clergy Found</p>
-          )}
-        </div>
-
-        {/* Leadership Board Section */}
-        {leadershipBoard && leadershipBoard.length > 0 && leadershipBoard.map((board, index) => (
-          <div key={index} className={styles.leadershipBoardCard}>
-            <h2>Leadership Board</h2>
-            <p className={styles.leadershipLevel}><strong>Level:</strong> {levels[board.leadershipLevel] || "Unkown"}</p>
-            <p className={styles.leadershipDescription}>{board.boardDescription || "No description available."}</p>
-            
-            <div className={styles.boardMembers}>
-              {board.chairmanName && <p><strong>Chairman:</strong> {board.chairmanName}</p>}
-              {board.chairladyName && <p><strong>Chairlady:</strong> {board.chairladyName}</p>}
-              {board.secretaryName && <p><strong>Secretary:</strong> {board.secretaryName}</p>}
-              {board.treasurerName && <p><strong>Treasurer:</strong> {board.treasurerName}</p>}
-              {board.vChairmanName && <p><strong>Vice Chairman:</strong> {board.vChairmanName}</p>}
-              {board.vChairladyName && <p><strong>Vice Chairlady:</strong> {board.vChairladyName}</p>}
-              {board.vSecretaryName && <p><strong>Vice Secretary:</strong> {board.vSecretaryName}</p>}
-              {board.vTreasurerName && <p><strong>Vice Treasurer:</strong> {board.vTreasurerName}</p>}
+        {/* Details Section */}
+        <section className={styles.section}>
+          <h2>Church Details</h2>
+          <div className={styles.detailsContainer}>
+            <div className={styles.card}>
+              <p><strong>Address:</strong> {church.localChurchAddress}</p>
+              <p><strong>Phone:</strong> {church.localChurchPhone}</p>
+              <p><strong>Email:</strong> {church.localChurchEmail}</p>
             </div>
-
-            {board.dateFormed && (
-              <p className={styles.boardDate}><strong>Date Formed:</strong> {new Date(board.dateFormed).toLocaleDateString()}</p>
-            )}
-
-            {board.boardTenure && (
-              <p className={styles.boardTenure}><strong>Tenure:</strong> {board.boardTenure} years</p>
-            )}
+            <div className={styles.location}>
+              <h3>Location</h3>
+              <img src="/images/location.svg" alt="Location Icon" className={styles.locationIcon} />
+              <p>{church.localChurchLocation}</p>
+              <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className={styles.googleMapsLink}>
+                Open in Google Maps
+              </a>
+            </div>
           </div>
-        ))}
+        </section>
 
+        <section className={styles.section}>
+        <h2>Gallery</h2>
+        <div className={styles.carouselContainer}>
+          {galleryImages.map((image, index) => (
+            <img
+              key={index}
+              src={`/images/gallery/${image}`} // Dynamically prepend folder path
+              alt={`Gallery Image ${index + 1}`}
+              className={`${styles.carouselImage} ${index === currentSlide ? styles.active : styles.inactive}`}
+            />
+          ))}
+        </div>
       </section>
 
-      {/* Events Section */}
-      <section className={styles.section}>
-        <h2>Events</h2>
-        <div className={styles.events}>
-          <div>
-            <h3>Upcoming Events</h3>
-            <div className={styles.eventCards}>
-              {events && events.length > 0 ? (
-                events.map((event) => (
-                  <div
-                    key={event.eventID}
-                    className={styles.eventCard}
-                    onClick={() => handleEventClick(event.eventID)}
-                  >
-                    <img
-                      src="/images/calendar.svg"
-                      alt={`${event.eventTitle} Cover`}
-                      className={styles.eventCoverPhoto}
-                    />
-                    <div className={styles.eventDetails}>
-                      <h4>{getLevelText(event.eventLevel) + ": " + event.eventTitle}</h4>
-                      <p><strong>Location:</strong> {event.eventLocationChurch}</p>
-                      <p><strong>Time:</strong> {formatEventDateTime(event.eventStratDate, event.eventStratTime, event.eventEndDate, event.eventEndTime)}</p>
-                    </div>
+
+        {/* Vestry Section */}
+        <section className={`${styles.section} ${styles.vestrySection}`}>
+          <h2>Vestry</h2>
+          
+          {/* Clergy Members */}
+          <div className={styles.clergyContainer}>
+            {clergy && clergy.length > 0 ? (
+              clergy.map((member) => (
+                <div
+                  className={styles.clergyCard}
+                  key={member.clergyID}
+                  onClick={() => handleClergyClick(member.clergyID)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <p className={styles.clergyRank}>{getClergyRankText(member.clergyRank)}</p>
+                  <img
+                    src={member.clergyPicture || "/images/priest.svg"}
+                    alt={member.clergyName}
+                    className={styles.clergyPortrait}
+                  />
+                  <div className={styles.clergyDetails}>
+                    <h3 className={styles.clergyName}>{member.clergyName}</h3>
+                    <p className={styles.clergyDescription}>{member.description || "No description available."}</p>
                   </div>
-                ))
-              ) : (
-                <p>No Upcoming Events</p>
+                </div>
+              ))
+            ) : (
+              <p>No Clergy Found</p>
+            )}
+          </div>
+
+          {/* Leadership Board Section */}
+          {leadershipBoard && leadershipBoard.length > 0 && leadershipBoard.map((board, index) => (
+            <div key={index} className={styles.leadershipBoardCard}>
+              <h2>Leadership Board</h2>
+              <p className={styles.leadershipLevel}><strong>Level:</strong> {levels[board.leadershipLevel] || "Unkown"}</p>
+              <p className={styles.leadershipDescription}>{board.boardDescription || "No description available."}</p>
+              
+              <div className={styles.boardMembers}>
+                {board.chairmanName && <p><strong>Chairman:</strong> {board.chairmanName}</p>}
+                {board.chairladyName && <p><strong>Chairlady:</strong> {board.chairladyName}</p>}
+                {board.secretaryName && <p><strong>Secretary:</strong> {board.secretaryName}</p>}
+                {board.treasurerName && <p><strong>Treasurer:</strong> {board.treasurerName}</p>}
+                {board.vChairmanName && <p><strong>Vice Chairman:</strong> {board.vChairmanName}</p>}
+                {board.vChairladyName && <p><strong>Vice Chairlady:</strong> {board.vChairladyName}</p>}
+                {board.vSecretaryName && <p><strong>Vice Secretary:</strong> {board.vSecretaryName}</p>}
+                {board.vTreasurerName && <p><strong>Vice Treasurer:</strong> {board.vTreasurerName}</p>}
+              </div>
+
+              {board.dateFormed && (
+                <p className={styles.boardDate}><strong>Date Formed:</strong> {new Date(board.dateFormed).toLocaleDateString()}</p>
+              )}
+
+              {board.boardTenure && (
+                <p className={styles.boardTenure}><strong>Tenure:</strong> {board.boardTenure} years</p>
               )}
             </div>
-          </div>
-        </div>
-      </section>
+          ))}
 
-      {/* Members Section */}
-      <section className={styles.section}>
-        <h2>Members</h2>
-        <button onClick={handleFetchMembers} className={styles.fetchMembersButton}>
-          Fetch {church.localChurchName} Members
-        </button>
-        {error && <p className={styles.errorMessage}>{error}</p>}
-        {members && members.length > 0 ? (
-          <div className={styles.membersTableContainer}>
-            <table className={styles.membersTable}>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Alias</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Role</th>
-                </tr>
-              </thead>
-              <tbody>
-                {members.map((member) => (
-                  <tr key={member.memberID}>
-                    <td>{member.memberName}</td>
-                    <td>{member.memberAlias}</td>
-                    <td>{member.memberEmail}</td>
-                    <td>{member.memberPhoneNum}</td>
-                    <td>{member.memberRole}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p>No members found.</p>
-        )}
-      </section>
+        </section>
 
-      {/* Announcements Section */}
-      <section className={styles.section}>
-        <h2>Announcements</h2>
-        <div className={styles.announcementsList}>
-          {announcements && announcements.length > 0 ? (
-            announcements.map((announcement) => (
-              <div key={announcement.announcementID} className={styles.announcementCard}>
-                <div className={styles.announcementHeader}>
-                  <img src="/images/announcement.svg" alt="Microphone Icon" className={styles.announcementIcon} />
-                  <h3>{announcement.announcementTitle}</h3>
-                </div>
-                <p className={styles.announcementLevel}><strong>Level:</strong> {announcement.announcementLevel}</p>
-                <p className={styles.announcementDescription}>{announcement.announcementDescription}</p>
-                <p className={styles.announcementDate}><strong>Date:</strong> {new Date(announcement.announcementStratDate).toLocaleDateString()}</p>
+        {/* Events Section */}
+        <section className={styles.section}>
+          <h2>Events</h2>
+          <div className={styles.events}>
+            <div>
+              <h3>Upcoming Events</h3>
+              <div className={styles.eventCards}>
+                {events && events.length > 0 ? (
+                  events.map((event) => (
+                    <div
+                      key={event.eventID}
+                      className={styles.eventCard}
+                      onClick={() => handleEventClick(event.eventID)}
+                    >
+                      <img
+                        src="/images/calendar.svg"
+                        alt={`${event.eventTitle} Cover`}
+                        className={styles.eventCoverPhoto}
+                      />
+                      <div className={styles.eventDetails}>
+                        <h4>{getLevelText(event.eventLevel) + ": " + event.eventTitle}</h4>
+                        <p><strong>Location:</strong> {event.eventLocationChurch}</p>
+                        <p><strong>Time:</strong> {formatEventDateTime(event.eventStratDate, event.eventStratTime, event.eventEndDate, event.eventEndTime)}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p>No Upcoming Events</p>
+                )}
               </div>
-            ))
-          ) : (
-            <p>No Announcements</p>
-          )}
-        </div>
-      </section>
+            </div>
+          </div>
+        </section>
 
-    </div>
+        {/* Members Section */}
+        <section className={styles.section}>
+          <h2>Members</h2>
+          <button onClick={handleFetchMembers} className={styles.fetchMembersButton}>
+            Fetch {church.localChurchName} Members
+          </button>
+          {error && <p className={styles.errorMessage}>{error}</p>}
+          {members && members.length > 0 ? (
+            <div className={styles.membersTableContainer}>
+              <table className={styles.membersTable}>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Alias</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map((member) => (
+                    <tr key={member.memberID}>
+                      <td>{member.memberName}</td>
+                      <td>{member.memberAlias}</td>
+                      <td>{member.memberEmail}</td>
+                      <td>{member.memberPhoneNum}</td>
+                      <td>{member.memberRole}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p>No members found.</p>
+          )}
+        </section>
+
+        {/* Announcements Section */}
+        <section className={styles.section}>
+          <h2>Announcements</h2>
+          <div className={styles.announcementsList}>
+            {announcements && announcements.length > 0 ? (
+              announcements.map((announcement) => (
+                <div key={announcement.announcementID} className={styles.announcementCard}>
+                  <div className={styles.announcementHeader}>
+                    <img src="/images/announcement.svg" alt="Microphone Icon" className={styles.announcementIcon} />
+                    <h3>{announcement.announcementTitle}</h3>
+                  </div>
+                  <p className={styles.announcementLevel}><strong>Level:</strong> {announcement.announcementLevel}</p>
+                  <p className={styles.announcementDescription}>{announcement.announcementDescription}</p>
+                  <p className={styles.announcementDate}><strong>Date:</strong> {new Date(announcement.announcementStratDate).toLocaleDateString()}</p>
+                </div>
+              ))
+            ) : (
+              <p>No Announcements</p>
+            )}
+          </div>
+        </section>
+
+      </div>
+    </Suspense>
   );
 
 };

@@ -1,10 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import styles from "../ChurchMember.module.css";
 import { ChurchMember } from "../../../../types/interfaces";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
+import { getAccessToken } from "../../api/get-access-token";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Suspense } from 'react';
 
 const ChurchMemberPortal: React.FC = () => {
   const [formData, setFormData] = useState<ChurchMember | null>(null);
@@ -12,13 +14,16 @@ const ChurchMemberPortal: React.FC = () => {
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [bio, setBio] = useState("This is where you can describe yourself...");
   const [isEditingBio, setIsEditingBio] = useState(false);
-  const searchParams = useSearchParams();
-  const memberID = searchParams.get("memberID");
+  const { user, error, isLoading } = useUser();
 
   useEffect(() => {
     const fetchMemberData = async () => {
       try {
-        const response = await fetch(`${BASE_ENDPOINT}/Profile/get-profile/${memberID}`); // Adjust endpoint
+        console.log("USER ID: ", user?.sub);
+        const token = await getAccessToken();
+        const response = await fetch(`${BASE_ENDPOINT}/Profile/get-profile/${user?.sub}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch member data");
         }

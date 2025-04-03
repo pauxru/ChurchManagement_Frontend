@@ -10,6 +10,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         const imageUrls = files.map((file) => `/gallery/${file}`); // Generate image URLs
         res.status(200).json({ images: imageUrls });
     } catch (error) {
-        res.status(500).json({ error: "Failed to load images" });
+        console.log(error);
+        res.status(500).json({ error: "Failed to load images", message: error});
     }
 }

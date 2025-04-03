@@ -1,13 +1,12 @@
 'use client'
 import { useEffect, useState } from "react";
-import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import axios from "axios";
 //import "../../globlas.css";
 import { getAccessToken } from "../../api/get-access-token";
-import { GetServerSideProps } from "next";
+
 
 
 interface LocalChurch {

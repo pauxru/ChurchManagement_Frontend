@@ -2,6 +2,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import './globals.css';
 import AppWrapper from '../../contexts/AppWrapper'; // Import the AppWrapper component
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AppWrapper>{children}</AppWrapper> 
+      <AppWrapper>
+        <Suspense fallback={<div>Loading church details...</div>}>{children}</Suspense>
+      </AppWrapper> 
       </body>
     </html>
   );
