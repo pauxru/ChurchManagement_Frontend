@@ -4,9 +4,11 @@ import { getAccessToken } from "./get-access-token";
 
 const fetchData = async (endpoint: string) => {
   try {
-    const token = await getAccessToken();
+    const res = await fetch('/api/get-api-access-token');
+    const fetchedToken = await res.text();
+
     const response = await axios.get(`${BASE_ENDPOINT}${endpoint}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${fetchedToken}` },
       timeout:5000
     });
     return response.data;
@@ -32,3 +34,5 @@ export const fetchAnnouncementDetails = (localChurchID: string) =>
 
 export const fetchMembers = (localChurchID: string) =>
   fetchData(`/Members/local-church/${localChurchID}`);
+
+export { getAccessToken };

@@ -4,8 +4,8 @@ import Image from "next/image";
 import styles from "./ClergyProfile.module.css";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../public/contants/global-variables";
 import { useSearchParams } from "next/navigation";
-import { getAccessToken } from "../api/get-access-token";
 import { Suspense } from 'react';
+import { useToken } from "../../../contexts/TokenContext";
 
 interface Clergy {
   clergyID: number;
@@ -31,6 +31,7 @@ const ClergyProfile = () => {
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { token } = useToken();
 
   useEffect(() => {
     if (!clergyID) return;
@@ -44,7 +45,7 @@ const ClergyProfile = () => {
   const fetchClergyDetails = async (id: number) => {
     setLoading(true);
     try {
-      const token = await getAccessToken();
+
       const response = await fetch(`${BASE_ENDPOINT}/Clergy/get-clergy/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });

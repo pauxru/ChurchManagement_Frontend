@@ -5,7 +5,9 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import styles from "./searchMembers.module.css";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import axios from "axios";
-import { getAccessToken } from "../../api/get-access-token";
+//import { getAccessToken2 } from "../../api/get-access-token";
+import { useToken } from "../../../../contexts/TokenContext";
+
 
 interface Option {
   id: number;
@@ -44,12 +46,17 @@ const MembersPage: React.FC = () => {
   const [localChurchOptions, setLocalChurchOptions] = useState<Option[]>([]);
   const [members, setMembers] = useState<MemberResponse[]>([]);
   const { user, isLoading } = useUser();
+  const { token } = useToken();
 
   useEffect(() => {
     const fetchDioceseOptions = async () => {
       try {
+        console.log("Getting session");
+        //token.replace(/^"|"$/g, '');
+        //const tkn = await fetch('/api/get-id-token');
+        console.log(token);
         const response = await axios.get<DioceseResponse[]>(`${BASE_ENDPOINT}/Churches/diocese`, {
-          headers: { Authorization: `Bearer ${await getAccessToken()}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         setDioceseOptions(
           response.data.map((diocese) => ({ id: diocese.dioceseId, name: diocese.dioceseName }))
@@ -78,7 +85,7 @@ const MembersPage: React.FC = () => {
       try {
         const response = await axios.get<ParishResponse[]>(
           `${BASE_ENDPOINT}/Churches/diocese-parishes/${selectedDiocese}`,
-          { headers: { Authorization: `Bearer ${await getAccessToken()}` } }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setParishOptions(response.data.map((parish) => ({ id: parish.parishId, name: parish.parishName })));
       } catch {
@@ -98,7 +105,7 @@ const MembersPage: React.FC = () => {
       try {
         const response = await axios.get<LocalChurchResponse[]>(
           `${BASE_ENDPOINT}/Churches/parish/${selectedParish}`,
-          { headers: { Authorization: `Bearer ${await getAccessToken()}` } }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setLocalChurchOptions(response.data.map((localChurch) => ({ id: localChurch.localChurchId, name: localChurch.localChurchName })));
       } catch {
@@ -112,7 +119,7 @@ const MembersPage: React.FC = () => {
     try {
       const response = await axios.get<MemberResponse[]>(
         `${BASE_ENDPOINT}/Members/local-church/${localChurch}`,
-        { headers: { Authorization: `Bearer ${await getAccessToken()}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setMembers(response.data);
     } catch {

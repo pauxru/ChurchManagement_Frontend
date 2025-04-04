@@ -4,8 +4,8 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import axios from "axios";
+import { useToken } from "../../../../contexts/TokenContext";
 //import "../../globlas.css";
-import { getAccessToken } from "../../api/get-access-token";
 
 
 
@@ -43,6 +43,7 @@ const LocalChurchesPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { token } = useToken();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -54,10 +55,7 @@ const LocalChurchesPage = () => {
     const fetchDioceses = async () => {
       try {
         console.log("Fetching dioceses...");
-  
-        const token = await getAccessToken();
-        console.log("Access token:", token);
-  
+    
         console.log("Making request to:", `${BASE_ENDPOINT}/Churches/diocese`);
         const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -90,7 +88,6 @@ const LocalChurchesPage = () => {
 
     if (dioceseId) {
       try {
-        const token = await getAccessToken();
         const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese-parishes/${dioceseId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -111,7 +108,6 @@ const LocalChurchesPage = () => {
     if (parishId) {
       try {
         setLoading(true);
-        const token = await getAccessToken();
         const response = await axios.get(`${BASE_ENDPOINT}/Churches/parish/${parishId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });

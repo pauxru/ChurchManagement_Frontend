@@ -3,12 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { BASE_ENDPOINT } from "../../../../public/contants/global-variables";
-import { getAccessToken } from "../../api/get-access-token";
+//import { getAccessToken2 } from "../../api/get-access-token";
 import styles from "./ChurchDetailsPage.module.css";
 import { Suspense } from 'react';
-
-
-
 
 import { LeadershipBoard, LocalChurch, Event, Clergy, ChurchMember, Announcement } from "../../../../types/interfaces";
 import {
@@ -18,6 +15,7 @@ import {
   fetchBoardDetails,
   fetchAnnouncementDetails
 } from "../../api/apiService";
+import { useToken } from "../../../../contexts/TokenContext";
 
 
 const ChurchDetailsPage = () => {
@@ -33,6 +31,7 @@ const ChurchDetailsPage = () => {
     const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { token } = useToken();
 
   useEffect(() => {
     if (LocalChurchID) {
@@ -88,7 +87,6 @@ const ChurchDetailsPage = () => {
             return;
         }
     
-        const token = await getAccessToken();
         const response = await axios.get(
             `${BASE_ENDPOINT}/Members/local-church/${LocalChurchID}`, // Adjust API endpoint as needed
             {
@@ -109,21 +107,21 @@ const ChurchDetailsPage = () => {
 
 
   // Fetch images on mount
-    useEffect(() => {
-      const fetchImages = async () => {
-          try {
-              const res = await fetch("/api/getGallery");
-              const data = await res.json();
-              if (res.ok) {
-                  setGalleryImages(data.images);
-              }
-          } catch (error) {
-              console.error("Error fetching images:", error);
-          }
-      };
+  //   useEffect(() => {
+  //     const fetchImages = async () => {
+  //         try {
+  //             const res = await fetch("/api/getGallery");
+  //             const data = await res.json();
+  //             if (res.ok) {
+  //                 setGalleryImages(data.images);
+  //             }
+  //         } catch (error) {
+  //             console.error("Error fetching images:", error);
+  //         }
+  //     };
 
-      fetchImages();
-  }, []);
+  //     fetchImages();
+  // }, []);
 
   // Auto-slide effect
   useEffect(() => {

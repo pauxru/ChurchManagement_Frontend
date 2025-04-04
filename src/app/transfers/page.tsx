@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import styles from "../../../styles/Transfers.module.css";
 import { BASE_ENDPOINT } from "../../../public/contants/global-variables";
-import { getAccessToken } from "../api/get-access-token";
+import { useToken } from "../../../contexts/TokenContext";
+
 
 interface Clergy {
   name: string;
@@ -35,6 +36,7 @@ interface Diocese {
 const DiocesePage = () => {
   const [diocese, setDiocese] = useState<Diocese | null>(null);
   const [loading, setLoading] = useState(true);
+  const { token } = useToken();
 
   useEffect(() => {
     fetchDioceseData();
@@ -43,7 +45,6 @@ const DiocesePage = () => {
   const fetchDioceseData = async () => {
     setLoading(true);
     try {
-      const token = await getAccessToken();
       const response = await fetch(`${BASE_ENDPOINT}/Clergy/transfers/diocese/1`, {
         headers: { Authorization: `Bearer ${token}` },
       });

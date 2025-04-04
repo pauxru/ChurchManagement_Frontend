@@ -1,9 +1,10 @@
 // lib/getAccessToken.js
 import axios from 'axios';
+import { getSession, withPageAuthRequired } from '@auth0/nextjs-auth0';
 //import jwtDecode from 'jwt-decode'; // Install using `npm install jwt-decode`
 
 // Original function to get access token using Client Credentials Flow
-export async function getAccessToken() {
+export async function getAccessToken3() {
   console.log('Here at getAccessToken');
   const options = {
     method: 'POST',
@@ -11,8 +12,8 @@ export async function getAccessToken() {
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     data: new URLSearchParams({
       grant_type: 'client_credentials',
-      client_id: 'iKc7bpU4Wl7jkxrX438f3ldUk1p4a8VK',
-      client_secret: 'dcYMowARH9H7AAP_fT3elUWkCKhv7yvdwZ4LJp2HcbkzvE4MQbr_QlKE7QR5eUg1',
+      client_id: 'dmj6Lh0qF7KEZ849zklR2asGWxpt0zY3',
+      client_secret: 'NYcz_NLA_7Bi0hmccPPnvIaXuNGin9PsI238g2ANNvWjK9s8V0WrUo0hHkvGk1wc',
       audience: 'https://localhost:5000/Churches/diocese',
     }),
   };
@@ -26,6 +27,33 @@ export async function getAccessToken() {
     throw new Error('Failed to fetch access token');
   }
 }
+
+
+
+/**
+ * Function to get the access token and ID token.
+ * This will only work after the user has authenticated.
+ */
+export async function getAccessToken(req: any, res: any) {
+  try {
+    // Retrieve the session to access the user's tokens
+    const session = await getSession(req, res);
+
+    if (!session || !session.accessToken || !session.idToken) {
+      throw new Error('User is not authenticated or tokens are missing.');
+    }
+
+    // Return both the access token and ID token
+    return {
+      accessToken: session.accessToken,
+      idToken: session.idToken
+    };
+  } catch (error) {
+    console.error('Error fetching access or ID token:', error);
+    throw new Error('Failed to retrieve tokens.');
+  }
+}
+
 
 // New function to get ID token using Authorization Code Flow
 // export async function getIdToken(code) {
