@@ -1,6 +1,7 @@
 "use client"
 //context/TokenContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { HOME_URL } from '../public/contants/global-variables';
 
 interface TokenContextType {
   token: string | null;
@@ -17,7 +18,7 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const fetchToken = async () => {
       try {
         console.log("Here at token provider")
-        const res = await fetch('http://localhost:3000/api/get-api-access-token');
+        const res = await fetch(`${HOME_URL}/api/get-api-access-token`);
         const fetchedToken = await res.text();
         setToken(fetchedToken);  // Store token in context state
       } catch (error) {
