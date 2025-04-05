@@ -21,9 +21,16 @@ export default function Home() {
   const handleLogout = () => {
     router.push("/api/auth/logout");
   };
+  
   const handleLogin = async() => {
     router.push("/api/auth/login");
-    await fetchToken();
+    if (user) {
+      console.log("User is logged in:", user);
+      await fetchToken();
+    } else {
+      console.log("User is not logged in");
+    }
+    
   };
 
   const isProfileIncomplete = !user?.email_verified;
