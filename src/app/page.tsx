@@ -8,7 +8,8 @@ import { useToken } from "../../contexts/TokenContext";
 export default function Home() {
   const router = useRouter();
   const { user, error, isLoading } = useUser();
-  const { fetchToken } = useToken();
+  const { fetchToken, token } = useToken();
+  
   
   console.log(`USER: ${user?.name}`);
 
@@ -21,19 +22,22 @@ export default function Home() {
   const handleLogout = () => {
     router.push("/api/auth/logout");
   };
-  
-  const handleLogin = async() => {
+
+  const handleLogin = () => {
     router.push("/api/auth/login");
-    if (user) {
-      console.log("User is logged in:", user);
-      await fetchToken();
-    } else {
-      console.log("User is not logged in");
-    }
-    
+        
+  };
+
+  const handleFetchToken = async() => {
+    await fetchToken();
+        
   };
 
   const isProfileIncomplete = !user?.email_verified;
+  if (user && !token) {
+    console.log("User is logged in:", user);
+    handleFetchToken();
+  } 
 
   return (
     <div className="min-h-screen bg-white text-black">
