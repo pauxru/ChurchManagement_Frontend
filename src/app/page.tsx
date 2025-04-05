@@ -3,10 +3,12 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useUser } from '@auth0/nextjs-auth0/client';
+import { useToken } from "../../contexts/TokenContext";
 
 export default function Home() {
   const router = useRouter();
   const { user, error, isLoading } = useUser();
+  const { fetchToken } = useToken();
   
   console.log(`USER: ${user?.name}`);
 
@@ -19,7 +21,8 @@ export default function Home() {
   const handleLogout = () => {
     router.push("/api/auth/logout");
   };
-  const handleLogin = () => {
+  const handleLogin = async() => {
+    await fetchToken();
     router.push("/api/auth/login");
   };
 

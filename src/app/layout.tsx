@@ -2,7 +2,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import './globals.css';
 import AppWrapper from '../../contexts/AppWrapper'; 
-import {TokenProvider } from '../../contexts/TokenContext';
+import { TokenProvider } from '../../contexts/TokenContext';
 import { Suspense } from "react";
 
 const geistSans = Geist({
@@ -28,11 +28,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-      <TokenProvider>
-      <AppWrapper>
-        <Suspense fallback={<div>Loading church details...</div>}>{children}</Suspense>
-      </AppWrapper> 
-      </TokenProvider>
+        <TokenProvider>
+          <AppWrapper>
+            <Suspense fallback={<div>Loading church details...</div>}>{children}</Suspense>
+          </AppWrapper>
+        </TokenProvider>
       </body>
     </html>
   );
