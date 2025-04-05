@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   try {
+    console.log("Here to get id token");
     const session = await getSession(); // Pass the request object
     
     if (!session) {
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
 
     // For security, don't log full tokens in production
     console.log("Token exists:", !!session.accessToken);
+    console.log("Token ID: ", session.idToken);
     
     return NextResponse.json(session.idToken, {
       headers: {

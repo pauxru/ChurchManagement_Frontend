@@ -4,6 +4,9 @@ import './globals.css';
 import AppWrapper from '../../contexts/AppWrapper'; 
 import { TokenProvider } from '../../contexts/TokenContext';
 import { Suspense } from "react";
+import NavBar from "@/components/NavBar";
+import Footer from "@/components/Footer";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +33,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <TokenProvider>
           <AppWrapper>
+          <NavBar />
             <Suspense fallback={<div>Loading church details...</div>}>{children}</Suspense>
+            <Footer />
           </AppWrapper>
         </TokenProvider>
       </body>

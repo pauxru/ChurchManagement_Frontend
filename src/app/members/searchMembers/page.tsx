@@ -53,8 +53,8 @@ const MembersPage: React.FC = () => {
       try {
         console.log("Getting session");
         //token.replace(/^"|"$/g, '');
-        //const tkn = await fetch('/api/get-id-token');
-        console.log(token);
+        const tkn = await fetch('/api/get-access-token');
+        console.log("NEW TOKEN: ",tkn.body);
         const response = await axios.get<DioceseResponse[]>(`${BASE_ENDPOINT}/Churches/diocese`, {
           headers: { Authorization: `Bearer ${token}` },
         });
