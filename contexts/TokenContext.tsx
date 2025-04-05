@@ -16,7 +16,8 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const res = await fetch('/api/get-api-access-token');
+        console.log("Here at token provider")
+        const res = await fetch('http://localhost:3000/api/get-api-access-token');
         const fetchedToken = await res.text();
         setToken(fetchedToken);  // Store token in context state
       } catch (error) {
