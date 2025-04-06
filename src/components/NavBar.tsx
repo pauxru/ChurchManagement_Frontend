@@ -1,19 +1,20 @@
 "use client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { useToken } from "../../contexts/TokenContext";
 import { useEffect, useRef, useState } from "react";
+import styles from "./NavBar.module.css";
 
 export default function NavBar() {
   const router = useRouter();
-  const { user, error, isLoading } = useUser();
+  const { user } = useUser();
   const { fetchToken, token } = useToken();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleProfileClick = () => {
-    router.push('/profile/editProfile');
+    router.push("/profile/editProfile");
     setDropdownOpen(false);
   };
 
@@ -29,7 +30,6 @@ export default function NavBar() {
     fetchToken();
   }
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -42,21 +42,21 @@ export default function NavBar() {
 
   return (
     <>
-      <nav className="bg-red-700 text-white shadow relative z-50">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center relative">
-          <h1 className="text-xl font-bold">A.I.P.C.A Church Management</h1>
-          <ul className="flex space-x-6 items-center">
-            <li><a href="#about" className="hover:underline">About</a></li>
-            <li><a href="#features" className="hover:underline">Features</a></li>
-            <li><span onClick={() => router.push("/transfers")} className="hover:underline cursor-pointer">Transfers</span></li>
-            <li><span onClick={() => router.push("/localChurches/searchLocalChurch")} className="hover:underline cursor-pointer">Churches</span></li>
-            <li><span onClick={() => router.push("/members/searchMembers")} className="hover:underline cursor-pointer">Members</span></li>
+      <nav className={styles.navbar}>
+        <div className={styles.container}>
+          <h1 className={styles.title}>A.I.P.C.A Church Management</h1>
+          <ul className={styles.navList}>
+            <li><a href="#about" className={styles.navItem}>About</a></li>
+            <li><a href="#features" className={styles.navItem}>Features</a></li>
+            <li><span onClick={() => router.push("/transfers")} className={styles.navItem}>Transfers</span></li>
+            <li><span onClick={() => router.push("/localChurches/searchLocalChurch")} className={styles.navItem}>Churches</span></li>
+            <li><span onClick={() => router.push("/members/searchMembers")} className={styles.navItem}>Members</span></li>
 
             {user ? (
               <div className="relative" ref={dropdownRef}>
                 <div
-                  className="flex items-center space-x-2 cursor-pointer"
-                  onClick={() => setDropdownOpen(prev => !prev)}
+                  className={styles.userWrapper}
+                  onClick={() => setDropdownOpen((prev) => !prev)}
                 >
                   <Image
                     src={"/images/members.svg"}
@@ -68,25 +68,15 @@ export default function NavBar() {
                   <span>{user.name}</span>
                 </div>
 
-                {/* Dropdown overlays absolutely without pushing layout */}
                 {dropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black shadow-lg rounded-lg py-2 z-50">
-                    <button
-                      onClick={handleProfileClick}
-                      className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
-                    >
+                  <div className={styles.dropdown}>
+                    <button onClick={handleProfileClick} className={styles.dropdownItem}>
                       Edit Profile
                     </button>
-                    <button
-                      onClick={() => router.push("/settings")}
-                      className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
-                    >
+                    <button onClick={() => router.push("/settings")} className={styles.dropdownItem}>
                       Settings
                     </button>
-                    <button
-                      onClick={handleLogout}
-                      className="block px-4 py-2 hover:bg-gray-100 w-full text-left text-red-600"
-                    >
+                    <button onClick={handleLogout} className={`${styles.dropdownItem} ${styles.logout}`}>
                       Logout
                     </button>
                   </div>
@@ -94,7 +84,7 @@ export default function NavBar() {
               </div>
             ) : (
               <li>
-                <span onClick={handleLogin} className="hover:underline cursor-pointer">Login</span>
+                <span onClick={handleLogin} className={styles.navItem}>Login</span>
               </li>
             )}
           </ul>
@@ -102,9 +92,9 @@ export default function NavBar() {
       </nav>
 
       {isProfileIncomplete && (
-        <div className="bg-yellow-100 text-yellow-900 p-4 text-center">
+        <div className={styles.profileWarning}>
           <p className="font-semibold">Your profile is incomplete. Please complete your details.</p>
-          <button onClick={handleProfileClick} className="mt-2 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-500">
+          <button onClick={handleProfileClick} className={styles.profileButton}>
             Complete Profile
           </button>
         </div>
