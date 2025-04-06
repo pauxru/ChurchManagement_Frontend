@@ -15,18 +15,6 @@ export default function Home() {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>{error.message}</div>;
 
-  const handleProfileClick = () => {
-    router.push('/profile/editProfile');
-  };
-
-  const handleLogout = () => {
-    router.push("/api/auth/logout");
-  };
-
-  const handleLogin = () => {
-    router.push("/api/auth/login");
-  };
-
   const handleFetchToken = async () => {
     await fetchToken();
   };
@@ -87,14 +75,6 @@ export default function Home() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className="py-16 bg-red-700 text-white">
-        <div className="container mx-auto px-6 text-center">
-          <h3 className="text-2xl font-bold">Contact Us</h3>
-          <p className="mt-4">Have questions? Reach out to us at <a href="mailto:info@churchapp.com" className="underline">info@churchapp.com</a></p>
         </div>
       </section>
     </div>
