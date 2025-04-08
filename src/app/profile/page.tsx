@@ -7,6 +7,8 @@ import Image from "next/image";
 import { UserProfile } from "../../../types/interfaces"; // Import the interface
 import { BASE_ENDPOINT } from "../../../public/contants/global-variables";
 import { Suspense } from 'react';
+import ErrorPage from "../error";
+import GlobalLoading from "../loading";
 
 export default function Profile() {
   const { user, error, isLoading } = useUser();
@@ -14,10 +16,10 @@ export default function Profile() {
   const [profile, setProfile] = useState<UserProfile | null>(null); // Use the interface here
 
   // Handle loading state
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <GlobalLoading />;
 
   // Handle error state
-  if (error) return <div>{error.message}</div>;
+  if (error) return <ErrorPage message={error.message}/>;
 
   // Redirect the user if not logged in
   useEffect(() => {
@@ -48,10 +50,10 @@ export default function Profile() {
   }, [user]);
 
   // If the user is still not available after redirection, return null
-  if (!user) return null;
+  if (!user) return <ErrorPage message="No user is available"/>;
 
   return (
-    <Suspense fallback={<div>Loading profile details...</div>}>
+    <Suspense fallback={<GlobalLoading />}>
     <div className="min-h-screen bg-white text-black">
       <div className="container mx-auto px-6 py-16 text-center">
         <h2 className="text-4xl font-extrabold">User Profile</h2>

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import axios from "axios";
 import { useToken } from "../../../../contexts/TokenContext";
+import ErrorPage from "@/app/error";
+import GlobalLoading from "@/app/loading";
 //import "../../globlas.css";
 
 
@@ -53,6 +55,7 @@ const LocalChurchesPage = () => {
   
   useEffect(() => {
     const fetchDioceses = async () => {
+      setLoading(true);
       try {
         console.log("Fetching dioceses...");
     
@@ -64,6 +67,7 @@ const LocalChurchesPage = () => {
         console.log("Response received:", response);
         
         setDioceseOptions(response.data.map((d: Diocese) => ({ id: d.dioceseId, name: d.dioceseName })));
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching dioceses:", err);
         router.push('/404');
@@ -88,10 +92,12 @@ const LocalChurchesPage = () => {
 
     if (dioceseId) {
       try {
+        setLoading(true);
         const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese-parishes/${dioceseId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setParishOptions(response.data.map((p: Parish) => ({ id: p.parishId, name: p.parishName })));
+        setLoading(false);
       } catch (err) {
         router.push('/404');
         setError("Failed to fetch parishes.");
@@ -126,9 +132,9 @@ const LocalChurchesPage = () => {
 
   };
 
-  if (isLoading || loading) return <div>Loading...</div>;
-  if (!user) return <div>Please log in to view this page.</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (isLoading || loading) return <GlobalLoading />;
+  if (!user) return <ErrorPage message="Please log in to view this page"/>;
+  if (error) return <ErrorPage />;
 
   return (
     <div className="container mx-auto px-4 py-6">

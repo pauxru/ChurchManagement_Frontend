@@ -7,6 +7,9 @@ import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-v
 import axios from "axios";
 //import { getAccessToken2 } from "../../api/get-access-token";
 import { useToken } from "../../../../contexts/TokenContext";
+import { useRouter } from "next/navigation";
+import GlobalLoading from "@/app/loading";
+import ErrorPage from "@/app/error";
 
 
 interface Option {
@@ -46,11 +49,21 @@ const MembersPage: React.FC = () => {
   const [localChurchOptions, setLocalChurchOptions] = useState<Option[]>([]);
   const [members, setMembers] = useState<MemberResponse[]>([]);
   const { user, isLoading } = useUser();
+  const [loading, setLoading] = useState(false);
   const { token } = useToken();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push(`/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`);
+    }
+  }, [user, isLoading, router]);
 
   useEffect(() => {
     const fetchDioceseOptions = async () => {
+      
       try {
+        setLoading(true);
         console.log("Getting session");
         //token.replace(/^"|"$/g, '');
         const tkn = await fetch('/api/get-access-token');
@@ -61,16 +74,19 @@ const MembersPage: React.FC = () => {
         setDioceseOptions(
           response.data.map((diocese) => ({ id: diocese.dioceseId, name: diocese.dioceseName }))
         );
+        setLoading(false);
       } catch {
         console.error("Failed to fetch diocese options.");
+        setLoading(false);
+        return <ErrorPage message="Failed to fetch diocese options."/>
       }
     };
 
     fetchDioceseOptions();
   }, []);
 
-  if (isLoading) return <div className={styles.loading}>Loading...</div>;
-  if (!user) return <div className={styles.authWarning}>Please log in to view this page.</div>;
+  if (isLoading) return <GlobalLoading />;
+  if (!user) return <ErrorPage message="Please log in to view this page"/>;
 
   const handleDioceseChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDiocese = e.target.value;
@@ -83,13 +99,17 @@ const MembersPage: React.FC = () => {
 
     if (selectedDiocese) {
       try {
+        setLoading(true);
         const response = await axios.get<ParishResponse[]>(
           `${BASE_ENDPOINT}/Churches/diocese-parishes/${selectedDiocese}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setParishOptions(response.data.map((parish) => ({ id: parish.parishId, name: parish.parishName })));
+        setLoading(false);
       } catch {
         console.error("Failed to fetch parish options.");
+        setLoading(false);
+        return <ErrorPage message="Failed to fetch parish options."/>
       }
     }
   };
@@ -103,13 +123,17 @@ const MembersPage: React.FC = () => {
 
     if (selectedParish) {
       try {
+        setLoading(true);
         const response = await axios.get<LocalChurchResponse[]>(
           `${BASE_ENDPOINT}/Churches/parish/${selectedParish}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setLocalChurchOptions(response.data.map((localChurch) => ({ id: localChurch.localChurchId, name: localChurch.localChurchName })));
+        setLoading(false);
       } catch {
         console.error("Failed to fetch local church options.");
+        setLoading(false);
+        return <ErrorPage message="Failed to fetch local church options."/>
       }
     }
   };
@@ -117,16 +141,23 @@ const MembersPage: React.FC = () => {
   const fetchData = async () => {
     if (!localChurch) return;
     try {
+      setLoading(true);
       const response = await axios.get<MemberResponse[]>(
         `${BASE_ENDPOINT}/Members/local-church/${localChurch}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMembers(response.data);
+      setLoading(false);
     } catch {
       console.error("Failed to fetch members.");
       setMembers([]);
+      setLoading(false);
+        return <ErrorPage message="Failed to fetch members."/>
     }
   };
+  if (isLoading || loading) return <GlobalLoading />;
+  if (!user) return <ErrorPage message="Please log in to view this page"/>;
+  if (!diocese) return <ErrorPage message="Failed to load diocese data" />;
 
   return (
     <div className={styles.container}>

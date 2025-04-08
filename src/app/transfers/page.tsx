@@ -4,6 +4,10 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import styles from "../../../styles/Transfers.module.css";
 import { BASE_ENDPOINT } from "../../../public/contants/global-variables";
 import { useToken } from "../../../contexts/TokenContext";
+import { useRouter } from "next/navigation";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import ErrorPage from "../error";
+import GlobalLoading from "../loading";
 
 
 interface Clergy {
@@ -37,6 +41,14 @@ const DiocesePage = () => {
   const [diocese, setDiocese] = useState<Diocese | null>(null);
   const [loading, setLoading] = useState(true);
   const { token } = useToken();
+  const router = useRouter();
+  const { user, isLoading } = useUser();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push(`/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`);
+    }
+  }, [user, isLoading, router]);
 
   useEffect(() => {
     fetchDioceseData();
@@ -92,8 +104,8 @@ const DiocesePage = () => {
     setDiocese(updatedDiocese);
   };
 
-  if (loading) return <p>Loading diocese data...</p>;
-  if (!diocese) return <p>No data available</p>;
+  if (loading) return <GlobalLoading />;
+  if (!diocese) return <ErrorPage message="Failed to load diocese data" />;
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>

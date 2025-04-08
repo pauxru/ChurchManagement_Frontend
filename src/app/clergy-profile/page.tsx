@@ -6,6 +6,8 @@ import { CHURCH_NAME, BASE_ENDPOINT } from "../../../public/contants/global-vari
 import { useSearchParams } from "next/navigation";
 import { Suspense } from 'react';
 import { useToken } from "../../../contexts/TokenContext";
+import ErrorPage from "../error";
+import GlobalLoading from "../loading";
 
 interface Clergy {
   clergyID: number;
@@ -134,11 +136,11 @@ const ClergyProfile = () => {
     </div>
   );
 
-  if (loading) return <p>Loading clergy data...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <GlobalLoading />;
+  if (error) return <ErrorPage message="Failed to load Clergy details"/>;
 
   return (
-    <Suspense fallback={<div>Loading clergy details...</div>}>
+    <Suspense fallback={<GlobalLoading />}>
     <div className={styles.container}>
       <h1 className={styles.title}>{CHURCH_NAME} Church Clergy Portal</h1>
 

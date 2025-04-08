@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useToken } from "../../contexts/TokenContext";
 import { useEffect, useRef, useState } from "react";
-import styles from "./NavBar.module.css";
+import styles from "./components.module.css/NavBar.module.css";
 
 export default function NavBar() {
   const router = useRouter();
@@ -92,13 +92,16 @@ export default function NavBar() {
       </nav>
 
       {isProfileIncomplete && (
-        <div className={styles.profileWarning}>
-          <p className="font-semibold">Your profile is incomplete. Please complete your details.</p>
-          <button onClick={handleProfileClick} className={styles.profileButton}>
-            Complete Profile
-          </button>
-        </div>
-      )}
+      <div className={styles.profileWarning}>
+        <p className="font-semibold">
+          Your profile is incomplete. Please complete your details.
+        </p>
+        <button onClick={handleProfileClick} className={styles.profileButton}>
+          Complete Profile
+        </button>
+      </div>
+    )}
+
     </>
   );
 }

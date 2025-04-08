@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"; // ✅ Correct import
 import axios from "axios";
+import ErrorPage from "@/app/error";
+import GlobalLoading from "@/app/loading";
 
 interface ChurchMember {
   memberID: number;
@@ -64,8 +66,8 @@ const MemberForm: React.FC = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <GlobalLoading />;
+  if (error) return <ErrorPage message="Failed to load member data"/>;
 
   return (
     <div className="container mx-auto px-4 py-6">

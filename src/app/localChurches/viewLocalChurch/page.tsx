@@ -16,6 +16,7 @@ import {
   fetchAnnouncementDetails
 } from "../../api/apiService";
 import { useToken } from "../../../../contexts/TokenContext";
+import GlobalLoading from "@/app/loading";
 
 
 const ChurchDetailsPage = () => {
@@ -199,7 +200,7 @@ const ChurchDetailsPage = () => {
   
 
   return (
-    <Suspense fallback={<div>Loading church details...</div>}>
+    <Suspense fallback={<GlobalLoading />}>
       <div className={styles.churchDetailsPage}>
         {/* Hero Section */}
         <div className={styles.hero}>

@@ -1,4 +1,4 @@
-import styles from './Footer.module.css';
+import styles from './components.module.css/Footer.module.css';
 import Link from 'next/link';
 
 export default function Footer() {

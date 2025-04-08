@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useToken } from "../../contexts/TokenContext";
+import HeroImageScroller from "@/components/HeroImageScroller";
+import ErrorPage from "./error";
 
 export default function Home() {
   const router = useRouter();
@@ -12,8 +14,8 @@ export default function Home() {
 
   console.log(`USER: ${user?.name}`);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>{error.message}</div>;
+  //if (isLoading) return <div>Loading...</div>;
+  if (error) return <ErrorPage message="Failed to load home page"/>;
 
   const handleFetchToken = async () => {
     await fetchToken();
@@ -28,14 +30,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white text-black">
       
-      {/* Hero Section */}
-      <header className="bg-red-600 text-white">
-        <div className="container mx-auto px-6 py-16 text-center">
-          <h2 className="text-4xl font-extrabold">Welcome to Our Church App</h2>
-          <p className="mt-4 text-lg">Empowering churches with tools for better management and engagement.</p>
-          <a href="#features" className="mt-6 inline-block bg-yellow-500 text-black font-semibold px-6 py-3 rounded shadow hover:bg-yellow-400">Explore Features</a>
-        </div>
-      </header>
+      <HeroImageScroller />
 
       {/* About Section */}
       <section id="about" className="py-16 bg-white">

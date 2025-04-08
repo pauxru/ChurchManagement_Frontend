@@ -6,6 +6,17 @@ import { ChurchMember } from "../../../../types/interfaces";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useToken } from "../../../../contexts/TokenContext";
+import { useRouter } from "next/navigation";
+import PositionSelector from "@/components/PositionSelector";
+import GlobalLoading from "@/app/loading";
+
+
+const Not_editableFields: (keyof ChurchMember)[] = [
+  "memberID",
+  "memberEmail",
+  "memberName"
+];
+
 
 const ChurchMemberPortal: React.FC = () => {
   const [formData, setFormData] = useState<ChurchMember | null>(null);
@@ -13,8 +24,15 @@ const ChurchMemberPortal: React.FC = () => {
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [bio, setBio] = useState("This is where you can describe yourself...");
   const [isEditingBio, setIsEditingBio] = useState(false);
-  const { user } = useUser();
+  const { user, isLoading } = useUser();
   const { token } = useToken();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push(`/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`);
+    }
+  }, [user, isLoading, router]);
 
   useEffect(() => {
     const fetchMemberData = async () => {
@@ -84,20 +102,23 @@ const ChurchMemberPortal: React.FC = () => {
           {formData?.[fieldName] || "Not provided"}
         </span>
       )}
-      <Image
-        src="/images/edit.svg"
-        alt="Edit Icon"
-        width={20}
-        height={20}
-        className={styles.editIcon}
-        onClick={() => handleEditField(fieldName)}
-        title="Edit"
-      />
+      { !Not_editableFields.includes(fieldName) && (
+        <Image
+          src="/images/edit.svg"
+          alt="Edit Icon"
+          width={20}
+          height={20}
+          className={styles.editIcon}
+          onClick={() => handleEditField(fieldName)}
+          title="Edit"
+        />
+      )}
     </div>
   );
+  
 
   if (!formData) {
-    return <p>Loading...</p>;
+    return <GlobalLoading />;
   }
 
   return (
@@ -106,16 +127,20 @@ const ChurchMemberPortal: React.FC = () => {
 
       {/* Contact Information Card */}
       <div className={styles.card}>
-        <div className={styles.linkIconWrapper} onClick={handleLinkProfile}>
-          <Image
-            src={profilePic ? "/images/okay_link.svg" : "/images/broken_link.svg"}
-            alt={profilePic ? "Linked" : "Not Linked"}
-            width={24}
-            height={24}
-            className={styles.linkIcon}
-            title={profilePic ? "Profile is linked to a church record" : "Profile is not linked"}
-          />
+      <div className={styles.cardTopBar}>
+          <div className={styles.linkIconWrapper} onClick={handleLinkProfile}>
+            <Image
+              src={profilePic ? "/images/okay_link.svg" : "/images/broken_link.svg"}
+              alt={profilePic ? "Linked" : "Not Linked"}
+              width={24}
+              height={24}
+              className={styles.linkIcon}
+              title={profilePic ? "Profile is linked to a church record" : "Profile is not linked"}
+            />
+          </div>
+          
         </div>
+
 
         <div className={styles.profileSection}>
           <div className={styles.imageWrapper}>
@@ -157,6 +182,7 @@ const ChurchMemberPortal: React.FC = () => {
               {isEditingBio ? "Save" : "Edit Bio"}
             </button>
           </div>
+            <PositionSelector />
           <div className={styles.infoSection}>
             {renderField("Member Number", "memberID")}
             {renderField("Name", "memberName")}

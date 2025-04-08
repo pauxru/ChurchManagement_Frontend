@@ -288,3 +288,29 @@
 .linkButton:hover {
   background-color: #45a049;
 }
+
+.cardTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.positionDropdownWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.positionLabel {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.positionSelect {
+  padding: 0.4rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: white;
+  font-size: 0.9rem;
+}
