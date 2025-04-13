@@ -48,7 +48,7 @@ export default function HeroImageScroller() {
       <div className={styles.imageOverlay}></div>
 
       <div className={styles.heroContent}>
-        <h2 className="text-4xl font-extrabold">Welcome to Our Church App</h2>
+        <h2 className="text-4xl font-extrabold">Welcome to A.I.P.C.A Digital</h2>
         <p className="mt-4 text-lg">Empowering churches with tools for better management and engagement.</p>
         <a
           href="#features"

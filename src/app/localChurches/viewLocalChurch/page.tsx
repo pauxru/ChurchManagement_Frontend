@@ -17,6 +17,7 @@ import {
 } from "../../api/apiService";
 import { useToken } from "../../../../contexts/TokenContext";
 import GlobalLoading from "@/app/loading";
+import ErrorPage from "@/app/error";
 
 
 const ChurchDetailsPage = () => {
@@ -26,7 +27,7 @@ const ChurchDetailsPage = () => {
   const [clergy, setClergy] = useState<Clergy[] | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [members, setMembers] = useState<ChurchMember[] | null>(null);
-  const [leadershipBoard, setBoards] = useState<LeadershipBoard[] | null>(null);
+  const [leadershipBoard, setBoards] = useState<LeadershipBoard | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[] | null>(null);
     const [galleryImages, setGalleryImages] = useState<string[]>([]);
     const [currentSlide, setCurrentSlide] = useState<number>(0);
@@ -64,7 +65,10 @@ const ChurchDetailsPage = () => {
   useEffect(() => {
     if (LocalChurchID) {
       fetchBoardDetails(LocalChurchID as string)
-        .then(setBoards)
+        .then((data) => {
+          console.log("Fetched Board Details: ", data);  // Verify the data fetched
+          setBoards(data);  // Set fetched board data
+        })
         .catch(() => setError("Failed to fetch board details."));
     }
   }, [LocalChurchID]);
@@ -89,7 +93,7 @@ const ChurchDetailsPage = () => {
         }
     
         const response = await axios.get(
-            `${BASE_ENDPOINT}/Members/local-church/${LocalChurchID}`, // Adjust API endpoint as needed
+            `${BASE_ENDPOINT}/Members/local-church/${LocalChurchID}`, 
             {
             headers: { Authorization: `Bearer ${token}` },
             }
@@ -135,8 +139,8 @@ const ChurchDetailsPage = () => {
       return () => clearInterval(interval);
   }, [galleryImages]);
 
-  if (error) return <div>Error: {error}</div>;
-  if (!church) return <div>Loading...</div>;
+  if (error) return <ErrorPage />;
+  if (!church) return <GlobalLoading />;
 
   const googleMapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(
     church.localChurchCoordinates
@@ -197,7 +201,7 @@ const ChurchDetailsPage = () => {
   };
 
   
-  
+  console.log("BOARD: ",leadershipBoard);
 
   return (
     <Suspense fallback={<GlobalLoading />}>
@@ -278,32 +282,40 @@ const ChurchDetailsPage = () => {
           </div>
 
           {/* Leadership Board Section */}
-          {leadershipBoard && leadershipBoard.length > 0 && leadershipBoard.map((board, index) => (
-            <div key={index} className={styles.leadershipBoardCard}>
+          {leadershipBoard ? (
+            <div className={styles.leadershipBoardCard}>
               <h2>Leadership Board</h2>
-              <p className={styles.leadershipLevel}><strong>Level:</strong> {levels[board.leadershipLevel] || "Unkown"}</p>
-              <p className={styles.leadershipDescription}>{board.boardDescription || "No description available."}</p>
+              <p className={styles.leadershipLevel}>
+                <strong>Level:</strong> {levels[leadershipBoard.leadershipLevel] || "Unknown"}
+              </p>
+              <p className={styles.leadershipDescription}>{leadershipBoard.boardDescription || "No description available."}</p>
               
               <div className={styles.boardMembers}>
-                {board.chairmanName && <p><strong>Chairman:</strong> {board.chairmanName}</p>}
-                {board.chairladyName && <p><strong>Chairlady:</strong> {board.chairladyName}</p>}
-                {board.secretaryName && <p><strong>Secretary:</strong> {board.secretaryName}</p>}
-                {board.treasurerName && <p><strong>Treasurer:</strong> {board.treasurerName}</p>}
-                {board.vChairmanName && <p><strong>Vice Chairman:</strong> {board.vChairmanName}</p>}
-                {board.vChairladyName && <p><strong>Vice Chairlady:</strong> {board.vChairladyName}</p>}
-                {board.vSecretaryName && <p><strong>Vice Secretary:</strong> {board.vSecretaryName}</p>}
-                {board.vTreasurerName && <p><strong>Vice Treasurer:</strong> {board.vTreasurerName}</p>}
+                {leadershipBoard.chairmanName && <p><strong>Chairman:</strong> {leadershipBoard.chairmanName}</p>}
+                {leadershipBoard.chairladyName && <p><strong>Chairlady:</strong> {leadershipBoard.chairladyName}</p>}
+                {leadershipBoard.secretaryName && <p><strong>Secretary:</strong> {leadershipBoard.secretaryName}</p>}
+                {leadershipBoard.treasurerName && <p><strong>Treasurer:</strong> {leadershipBoard.treasurerName}</p>}
+                {leadershipBoard.vChairmanName && <p><strong>Vice Chairman:</strong> {leadershipBoard.vChairmanName}</p>}
+                {leadershipBoard.vChairladyName && <p><strong>Vice Chairlady:</strong> {leadershipBoard.vChairladyName}</p>}
+                {leadershipBoard.vSecretaryName && <p><strong>Vice Secretary:</strong> {leadershipBoard.vSecretaryName}</p>}
+                {leadershipBoard.vTreasurerName && <p><strong>Vice Treasurer:</strong> {leadershipBoard.vTreasurerName}</p>}
+                {leadershipBoard.Admin && <p><strong>Admin:</strong> {leadershipBoard.Admin}</p>}
               </div>
 
-              {board.dateFormed && (
-                <p className={styles.boardDate}><strong>Date Formed:</strong> {new Date(board.dateFormed).toLocaleDateString()}</p>
+              {leadershipBoard.dateFormed && (
+                <p className={styles.boardDate}>
+                  <strong>Date Formed:</strong> {new Date(leadershipBoard.dateFormed).toLocaleDateString()}
+                </p>
               )}
 
-              {board.boardTenure && (
-                <p className={styles.boardTenure}><strong>Tenure:</strong> {board.boardTenure} years</p>
+              {leadershipBoard.boardTenure && (
+                <p className={styles.boardTenure}><strong>Tenure:</strong> {leadershipBoard.boardTenure} years</p>
               )}
             </div>
-          ))}
+          ) : (
+            <p>Loading Leadership Board...</p>  // Display loading or a fallback message
+          )}
+
 
         </section>
 

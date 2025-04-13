@@ -70,7 +70,7 @@ const LocalChurchesPage = () => {
         setLoading(false);
       } catch (err) {
         console.error("Error fetching dioceses:", err);
-        router.push('/404');
+        <ErrorPage message="An error occured "/>
         setError("Failed to fetch dioceses.");
       }
     };
@@ -99,7 +99,7 @@ const LocalChurchesPage = () => {
         setParishOptions(response.data.map((p: Parish) => ({ id: p.parishId, name: p.parishName })));
         setLoading(false);
       } catch (err) {
-        router.push('/404');
+        <ErrorPage message="An error occured "/>
         setError("Failed to fetch parishes.");
         console.error(err);
       }

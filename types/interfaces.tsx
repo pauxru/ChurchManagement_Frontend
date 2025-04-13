@@ -102,6 +102,25 @@ export interface LeadershipBoard {
     vChairladyName?: string;
     vSecretaryName?: string;
     vTreasurerName?: string;
+    Admin?: string;
+}
+
+export interface Leader {
+  leaderID: number;
+  leaderName: string;
+  leadershipLevel: number;
+  leadersshipLevel_ID: number;
+  LeaderPosition: number;
+  ComencementDate?: Date;
+  LeadershipTenure?: string;
+  chairmanName?: string;
+  chairladyName?: string;
+  secretaryName?: string;
+  treasurerName?: string;
+  vChairmanName?: string;
+  vChairladyName?: string;
+  vSecretaryName?: string;
+  vTreasurerName?: string;
 }
 
 // types/UserProfile.ts

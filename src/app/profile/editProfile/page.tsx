@@ -38,7 +38,7 @@ const ChurchMemberPortal: React.FC = () => {
     const fetchMemberData = async () => {
       try {
 
-        const response = await fetch(`${BASE_ENDPOINT}/Profile/get-profile/${user?.sub}`, {
+        const response = await fetch(`${BASE_ENDPOINT}/Profile/get-profile/${user?.email}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -182,7 +182,7 @@ const ChurchMemberPortal: React.FC = () => {
               {isEditingBio ? "Save" : "Edit Bio"}
             </button>
           </div>
-            <PositionSelector />
+            
           <div className={styles.infoSection}>
             {renderField("Member Number", "memberID")}
             {renderField("Name", "memberName")}
@@ -216,7 +216,9 @@ const ChurchMemberPortal: React.FC = () => {
           {renderField("Consecration godparent", "consecrationRepresentative")}
         </div>
       </div>
+      <PositionSelector />
     </div>
+    
   );
 };
 

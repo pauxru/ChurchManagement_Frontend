@@ -47,7 +47,7 @@ export default function NavBar() {
           <h1 className={styles.title}>A.I.P.C.A Church Management</h1>
           <ul className={styles.navList}>
             <li><a href="#about" className={styles.navItem}>About</a></li>
-            <li><a href="#features" className={styles.navItem}>Features</a></li>
+            <li><a href="#features" className={styles.navItem}>History</a></li>
             <li><span onClick={() => router.push("/transfers")} className={styles.navItem}>Transfers</span></li>
             <li><span onClick={() => router.push("/localChurches/searchLocalChurch")} className={styles.navItem}>Churches</span></li>
             <li><span onClick={() => router.push("/members/searchMembers")} className={styles.navItem}>Members</span></li>
