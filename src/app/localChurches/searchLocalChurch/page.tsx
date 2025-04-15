@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from "react";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useUser } from "@auth0/nextjs-auth0";
 import { useRouter } from "next/navigation";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import axios from "axios";

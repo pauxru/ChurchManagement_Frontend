@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useUser } from "@auth0/nextjs-auth0";
 import styles from "./searchMembers.module.css";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import axios from "axios";
@@ -12,6 +12,7 @@ import GlobalLoading from "@/app/loading";
 import ErrorPage from "@/app/error";
 import { request } from "http";
 import { NextResponse } from "next/server";
+import { auth0 } from "../../../lib/auth0";
 
 
 interface Option {
@@ -68,9 +69,9 @@ const MembersPage: React.FC = () => {
         setLoading(true);
         console.log("Getting session");
         //token.replace(/^"|"$/g, '');
-        const tkn = await fetch('/api/get-id-token');
+        //const tkn = await fetch('/api/get-access-token');
         //const tkn = await getAccessToken(request, NextResponse);
-        console.log("NEW TOKEN: ",tkn);
+        console.log("NEW TOKEN: ",auth0.getAccessToken());
         const response = await axios.get<DioceseResponse[]>(`${BASE_ENDPOINT}/Churches/diocese`, {
           headers: { Authorization: `Bearer ${token}` },
         });

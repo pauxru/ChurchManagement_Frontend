@@ -10,7 +10,7 @@
     "deploy": "npm run build && powershell -ExecutionPolicy Bypass -File deploy.ps1"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^3.5.0",
+    "@auth0/nextjs-auth0": "^4.2.1",
     "@hello-pangea/dnd": "^18.0.1",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",

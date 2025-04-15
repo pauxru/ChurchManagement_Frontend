@@ -1,9 +1,10 @@
 "use client";
-import Image from "next/image";
+
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useUser } from "@auth0/nextjs-auth0";
 import { useToken } from "../../contexts/TokenContext";
-import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import styles from "./components.module.css/NavBar.module.css";
 
 export default function NavBar() {
@@ -13,22 +14,6 @@ export default function NavBar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleProfileClick = () => {
-    router.push("/profile/editProfile");
-    setDropdownOpen(false);
-  };
-
-  const handleLogout = () => {
-    router.push("/api/auth/logout");
-    setDropdownOpen(false);
-  };
-
-  const handleLogin = () => router.push("/api/auth/login");
-
-  const isProfileIncomplete = !user?.email_verified;
-  if (user && !token) {
-    fetchToken();
-  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,6 +24,18 @@ export default function NavBar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleProfileClick = () => {
+    router.push("/profile/editProfile");
+    setDropdownOpen(false);
+  };
+
+  const isProfileIncomplete = !user?.email_verified;
+  useEffect(() => {
+    if (user && !token) {
+      fetchToken();
+    }
+  }, [user, token, fetchToken]);
 
   return (
     <>
@@ -76,15 +73,13 @@ export default function NavBar() {
                     <button onClick={() => router.push("/settings")} className={styles.dropdownItem}>
                       Settings
                     </button>
-                    <button onClick={handleLogout} className={`${styles.dropdownItem} ${styles.logout}`}>
-                      Logout
-                    </button>
+                    <a href="/auth/logout" >Logout</a>
                   </div>
                 )}
               </div>
             ) : (
               <li>
-                <span onClick={handleLogin} className={styles.navItem}>Login</span>
+                <a href="/auth/login" >Login</a>
               </li>
             )}
           </ul>
@@ -92,16 +87,15 @@ export default function NavBar() {
       </nav>
 
       {isProfileIncomplete && (
-      <div className={styles.profileWarning}>
-        <p className="font-semibold">
-          Your profile is incomplete. Please complete your details.
-        </p>
-        <button onClick={handleProfileClick} className={styles.profileButton}>
-          Complete Profile
-        </button>
-      </div>
-    )}
-
+        <div className={styles.profileWarning}>
+          <p className="font-semibold">
+            Your profile is incomplete. Please complete your details.
+          </p>
+          <button onClick={handleProfileClick} className={styles.profileButton}>
+            Complete Profile
+          </button>
+        </div>
+      )}
     </>
   );
 }

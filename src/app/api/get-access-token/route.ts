@@ -1,10 +1,10 @@
 // app/api/auth/tokens/route.ts
-import { getSession } from '@auth0/nextjs-auth0';
+import { auth0 } from "../../../lib/auth0";
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   try {
-    const session = await getSession(); // Pass the request object
+    const session = await auth0.getSession(); // Pass the request object
     
     if (!session) {
       return NextResponse.json(

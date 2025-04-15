@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useUser } from '@auth0/nextjs-auth0';
 import { useToken } from "../../contexts/TokenContext";
 import HeroImageScroller from "@/components/HeroImageScroller";
 import ErrorPage from "./error";
@@ -15,7 +15,10 @@ export default function Home() {
   console.log(`USER: ${user?.name}`);
 
   //if (isLoading) return <div>Loading...</div>;
-  if (error) return <ErrorPage message="Failed to load home page"/>;
+  if (error) {
+    console.log("ERROR: ", error);
+    return <ErrorPage message="Failed to load home page"/>;
+  }
 
   const handleFetchToken = async () => {
     await fetchToken();
