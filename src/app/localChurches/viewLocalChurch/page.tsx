@@ -14,7 +14,7 @@ import {
   fetchEventDetails,
   fetchBoardDetails,
   fetchAnnouncementDetails
-} from "../../api/apiService";
+} from "../../api/churchesApiService";
 import { useToken } from "../../../../contexts/TokenContext";
 import GlobalLoading from "@/app/loading";
 import ErrorPage from "@/app/error";

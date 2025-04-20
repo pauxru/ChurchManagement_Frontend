@@ -33,26 +33,26 @@ const ChurchMemberPortal: React.FC = () => {
       router.push(`/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`);
     }
   }, [user, isLoading, router]);
-
+  
   useEffect(() => {
+    if (!user || !token) return; // <- guard to ensure consistent calls
+  
     const fetchMemberData = async () => {
       try {
-
-        const response = await fetch(`${BASE_ENDPOINT}/Profile/get-profile/${user?.email}`, {
+        const response = await fetch(`${BASE_ENDPOINT}/Profile/get-profile/${user.email}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!response.ok) {
-          throw new Error("Failed to fetch member data");
-        }
+        if (!response.ok) throw new Error("Failed to fetch member data");
         const data: ChurchMember = await response.json();
         setFormData(data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
+  
     fetchMemberData();
-  }, []);
+  }, [user, token]);
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (!formData) return;
