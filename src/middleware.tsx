@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth0 } from "./src/lib/auth0"
+import { auth0 } from "./lib/auth0"
 
 export async function middleware(request: any) {
     const authRes = await auth0.middleware(request);
@@ -10,7 +10,7 @@ export async function middleware(request: any) {
     }
 
     // public routes — no need to check for session
-    if (request.nextUrl.pathname === ("/")) {
+    if (request.nextUrl.pathname === ("")) {
         return authRes;
     }
 

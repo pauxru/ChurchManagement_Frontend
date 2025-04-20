@@ -106,4 +106,15 @@
     background-color: #e0a800;
   }
   
+  .titleWrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
   

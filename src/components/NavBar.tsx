@@ -3,14 +3,15 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0";
-import { useToken } from "../../contexts/TokenContext";
+//import { useToken } from "../../contexts/TokenContext";
 import Image from "next/image";
 import styles from "./components.module.css/NavBar.module.css";
+import Logo from "./Logo";
 
 export default function NavBar() {
   const router = useRouter();
   const { user } = useUser();
-  const { fetchToken, token } = useToken();
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -31,17 +32,16 @@ export default function NavBar() {
   };
 
   const isProfileIncomplete = !user?.email_verified;
-  useEffect(() => {
-    if (user && !token) {
-      fetchToken();
-    }
-  }, [user, token, fetchToken]);
 
   return (
     <>
       <nav className={styles.navbar}>
         <div className={styles.container}>
-          <h1 className={styles.title}>A.I.P.C.A Church Management</h1>
+        <div className={styles.titleWrapper}>
+        <Logo />
+          <h1 className={styles.title} onClick={() => router.push("/")}>A.I.P.C.A Church</h1>
+          
+        </div>
           <ul className={styles.navList}>
             <li><a href="#about" className={styles.navItem}>About</a></li>
             <li><a href="#features" className={styles.navItem}>History</a></li>
@@ -86,7 +86,7 @@ export default function NavBar() {
         </div>
       </nav>
 
-      {isProfileIncomplete && (
+      {false && (
         <div className={styles.profileWarning}>
           <p className="font-semibold">
             Your profile is incomplete. Please complete your details.

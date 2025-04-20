@@ -5,7 +5,7 @@ import { useUser } from "@auth0/nextjs-auth0";
 import styles from "./searchMembers.module.css";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
 import axios from "axios";
-import { getAccessToken } from "../../api/get-access-token";
+//import { getAccessToken } from "../../api/get-access-token";
 import { useToken } from "../../../../contexts/TokenContext";
 import { useRouter } from "next/navigation";
 import GlobalLoading from "@/app/loading";
@@ -13,6 +13,7 @@ import ErrorPage from "@/app/error";
 import { request } from "http";
 import { NextResponse } from "next/server";
 import { auth0 } from "../../../lib/auth0";
+//import { getAccessToken } from "@auth0/nextjs-auth0";
 
 
 interface Option {
@@ -55,9 +56,11 @@ const MembersPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { token } = useToken();
   const router = useRouter();
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
+
       router.push(`/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`);
     }
   }, [user, isLoading, router]);
@@ -68,10 +71,8 @@ const MembersPage: React.FC = () => {
       try {
         setLoading(true);
         console.log("Getting session");
-        //token.replace(/^"|"$/g, '');
-        //const tkn = await fetch('/api/get-access-token');
-        //const tkn = await getAccessToken(request, NextResponse);
-        console.log("NEW TOKEN: ",auth0.getAccessToken());
+
+        console.log("NEW TOKEN: ",token);
         const response = await axios.get<DioceseResponse[]>(`${BASE_ENDPOINT}/Churches/diocese`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -79,10 +80,10 @@ const MembersPage: React.FC = () => {
           response.data.map((diocese) => ({ id: diocese.dioceseId, name: diocese.dioceseName }))
         );
         setLoading(false);
-      } catch {
-        console.error("Failed to fetch diocese options.");
+      } catch (error) {
+        console.error("Failed to fetch diocese options.", error);
         setLoading(false);
-        return <ErrorPage message="Failed to fetch diocese options."/>
+        setHasError(true);
       }
     };
 
@@ -91,6 +92,7 @@ const MembersPage: React.FC = () => {
 
   if (isLoading) return <GlobalLoading />;
   if (!user) return <ErrorPage message="Please log in to view this page"/>;
+  if (hasError) return <ErrorPage message="Something went wrong loading diocese" />;
 
   const handleDioceseChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDiocese = e.target.value;
@@ -104,6 +106,7 @@ const MembersPage: React.FC = () => {
     if (selectedDiocese) {
       try {
         setLoading(true);
+        //const token = await getAccessToken();
         const response = await axios.get<ParishResponse[]>(
           `${BASE_ENDPOINT}/Churches/diocese-parishes/${selectedDiocese}`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -128,6 +131,7 @@ const MembersPage: React.FC = () => {
     if (selectedParish) {
       try {
         setLoading(true);
+        //const token = await getAccessToken();
         const response = await axios.get<LocalChurchResponse[]>(
           `${BASE_ENDPOINT}/Churches/parish/${selectedParish}`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -146,6 +150,7 @@ const MembersPage: React.FC = () => {
     if (!localChurch) return;
     try {
       setLoading(true);
+      //const token = await getAccessToken();
       const response = await axios.get<MemberResponse[]>(
         `${BASE_ENDPOINT}/Members/local-church/${localChurch}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -161,7 +166,7 @@ const MembersPage: React.FC = () => {
   };
   if (isLoading || loading) return <GlobalLoading />;
   if (!user) return <ErrorPage message="Please log in to view this page"/>;
-  if (!diocese) return <ErrorPage message="Failed to load diocese data" />;
+  //if (!diocese) return <ErrorPage message="Failed to load diocese data" />;
 
   return (
     <div className={styles.container}>

@@ -1,11 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import styles from "../../../styles/Transfers.module.css";
+import styles from "./Transfers.module.css";
 import { BASE_ENDPOINT } from "../../../public/contants/global-variables";
 import { useToken } from "../../../contexts/TokenContext";
 import { useRouter } from "next/navigation";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useUser } from '@auth0/nextjs-auth0';
+
 import ErrorPage from "../error";
 import GlobalLoading from "../loading";
 
@@ -188,3 +189,4 @@ const DiocesePage = () => {
 };
 
 export default DiocesePage;
+

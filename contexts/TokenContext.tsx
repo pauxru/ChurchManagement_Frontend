@@ -15,11 +15,13 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Fetch token only when needed (e.g., after login)
   const fetchToken = async () => {
+    if (token) return;
     try {
       console.log("Fetching token after login...");
-      const res = await fetch(`/api/get-api-access-token`);
+      const res = await fetch(`/api/get-access-token`);
       const fetchedToken = await res.text();
       setToken(fetchedToken);  // Store token in context state
+      console.log("NEW FETCHED TOKEN: ",fetchedToken);
     } catch (error) {
       console.error('Failed to fetch token', error);
     }

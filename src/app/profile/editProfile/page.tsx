@@ -4,7 +4,7 @@ import Image from "next/image";
 import styles from "../ChurchMember.module.css";
 import { ChurchMember } from "../../../../types/interfaces";
 import { CHURCH_NAME, BASE_ENDPOINT } from "../../../../public/contants/global-variables";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useUser } from "@auth0/nextjs-auth0";
 import { useToken } from "../../../../contexts/TokenContext";
 import { useRouter } from "next/navigation";
 import PositionSelector from "@/components/PositionSelector";
@@ -182,6 +182,8 @@ const ChurchMemberPortal: React.FC = () => {
               {isEditingBio ? "Save" : "Edit Bio"}
             </button>
           </div>
+          
+          <PositionSelector />
             
           <div className={styles.infoSection}>
             {renderField("Member Number", "memberID")}
@@ -216,7 +218,7 @@ const ChurchMemberPortal: React.FC = () => {
           {renderField("Consecration godparent", "consecrationRepresentative")}
         </div>
       </div>
-      <PositionSelector />
+      
     </div>
     
   );
