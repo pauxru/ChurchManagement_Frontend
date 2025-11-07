@@ -15,10 +15,10 @@ export default function Home() {
   console.log(`USER: ${user?.name}`);
 
   //if (isLoading) return <div>Loading...</div>;
-  if (error) {
-    console.log("ERROR: ", error);
-    return <ErrorPage message="Failed to load home page"/>;
-  }
+  // if (error) {
+  //   console.log("ERROR: ", error);
+  //   return <ErrorPage message="Failed to load home page"/>;
+  // }
 
   const handleFetchToken = async () => {
     await fetchToken();

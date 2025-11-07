@@ -17,7 +17,7 @@ export default function Logo() {
       }}
     >
       <Image
-        src="/images/aipca_logo.png" // Replace with your actual logo path
+        src="/images/aipca_logo.png"
         alt="Church Logo"
         width={40}
         height={40}

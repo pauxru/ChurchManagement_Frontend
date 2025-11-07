@@ -39,7 +39,7 @@ export default function NavBar() {
         <div className={styles.container}>
         <div className={styles.titleWrapper}>
         <Logo />
-          <h1 className={styles.title} onClick={() => router.push("/")}>A.I.P.C.A Church</h1>
+          <h1 className={styles.title} onClick={() => router.push("/")}>A.I.P.C.A</h1>
           
         </div>
           <ul className={styles.navList}>

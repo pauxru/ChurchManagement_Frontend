@@ -19,7 +19,7 @@ export default function HeroImageScroller() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % imageNames.length)
-    }, 3000) // every 3 seconds
+    }, 9000) // every 3 seconds
 
     return () => clearInterval(interval)
   }, [])
