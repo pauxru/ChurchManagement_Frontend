@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# deploy bookkeeping (set by provision.ps1 on the server)
+.deploy-deps.hash
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
