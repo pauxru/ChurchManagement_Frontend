@@ -9,4 +9,4 @@ export const FULL_CHURCH_NAME = "Africa Independent Pentecostal Church of Africa
 export const BASE_ENDPOINT =
   process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
 
-export const HOME_URL = "https://www.pawadtech.com";
+export const HOME_URL = "https://aipca.co.ke";
