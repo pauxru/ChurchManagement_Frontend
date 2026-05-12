@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
+import { BASE_ENDPOINT } from "../../public/constants/global-variables";
 import "../app/globals.css";
 
 interface ChurchMember {
@@ -42,11 +43,11 @@ const MemberForm: React.FC = () => {
     try {
       if (memberData.memberID) {
         await axios.put(
-          `https://localhost:5000/ChurchManagement/member/${memberData.memberID}`,
+          `${BASE_ENDPOINT}/ChurchManagement/member/${memberData.memberID}`,
           memberData
         );
       } else {
-        await axios.post(`https://localhost:5000/ChurchManagement/member`, memberData);
+        await axios.post(`${BASE_ENDPOINT}/ChurchManagement/member`, memberData);
       }
       router.push("/members");
     } catch (err) {

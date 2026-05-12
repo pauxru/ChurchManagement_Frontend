@@ -1,27 +1,17 @@
-import React from 'react';
+import { signIn } from "next-auth/react";
 
 const LoginPage = () => {
-  const handleSocialLogin = (provider: string) => {
-    window.location.href = `api/custom-login?connection=${provider}`;
-  };
-
   return (
-    <div>
-      <h1>Log In</h1>
-      <form method="POST" action="api/custom-login">
-        <label>
-          Email:
-          <input type="email" name="username" required />
-        </label>
-        <label>
-          Password:
-          <input type="password" name="password" required />
-        </label>
-        <button type="submit">Log In</button>
-      </form>
-      <h2>Or Log In with:</h2>
-      <button onClick={() => handleSocialLogin('google')}>Google</button>
-      <button onClick={() => handleSocialLogin('facebook')}>Facebook</button>
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-6">Sign in</h1>
+        <button
+          onClick={() => signIn("microsoft-entra-id", { callbackUrl: "/" })}
+          className="bg-red-700 text-white px-6 py-3 rounded shadow hover:bg-red-600"
+        >
+          Continue with Microsoft
+        </button>
+      </div>
     </div>
   );
 };

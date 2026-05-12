@@ -2,7 +2,7 @@ import { useState } from "react";
 import Image from "next/image";
 import styles from "../../styles/ChurchMember.module.css";
 import { ChurchMember } from "../../types/interfaces"
-import { CHURCH_NAME } from "../../public/contants/global-variables";
+import { CHURCH_NAME } from "../../public/constants/global-variables";
 
 const ChurchMemberPortal = () => {
   const [formData, setFormData] = useState<ChurchMember>({

@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { withPageAuthRequired } from '@auth0/nextjs-auth0';
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 import styles from "../../styles/ChurchMember.module.css";
 import { ChurchMember } from "../../types/interfaces";
-import { CHURCH_NAME } from "../../public/contants/global-variables";
+import { CHURCH_NAME } from "../../public/constants/global-variables";
 
 const ChurchMemberPortal: React.FC = () => {
   const [formData, setFormData] = useState<ChurchMember>({
@@ -39,6 +39,13 @@ const ChurchMemberPortal: React.FC = () => {
   const [isEditingBio, setIsEditingBio] = useState(false);
 
   const router = useRouter();
+  const { status } = useSession();
+
+  // Client-side auth gate (avoids the NextAuth-v5+Pages-Router+Turbopack
+  // SSR import incompatibility that 500'd this page in E2E).
+  useEffect(() => {
+    if (status === "unauthenticated") router.replace("/login");
+  }, [status, router]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -196,5 +203,4 @@ const ChurchMemberPortal: React.FC = () => {
   );
 };
 
-export const getServerSideProps = withPageAuthRequired();
 export default ChurchMemberPortal;

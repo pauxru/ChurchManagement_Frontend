@@ -1,9 +1,10 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import "../app/globals.css";
-import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/contants/global-variables";
+import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/constants/global-variables";
 import axios from "axios";
-import { getAccessToken } from "../pages/api/get-access-token";
 
 interface Option {
   id: number;
@@ -32,29 +33,28 @@ const MembersPage: React.FC = () => {
   const [dioceseOptions, setDioceseOptions] = useState<Option[]>([]);
   const [parishOptions, setParishOptions] = useState<Option[]>([]);
   const [localChurchOptions, setLocalChurchOptions] = useState<Option[]>([]);
-  const { user, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const token = session?.accessToken;
 
   useEffect(() => {
+    if (!token) return;
     const fetchDioceseOptions = async () => {
       try {
         const response = await axios.get<DioceseResponse[]>(`${BASE_ENDPOINT}/Churches/diocese`, {
-          headers: {
-            Authorization: `Bearer ${await getAccessToken()}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
         setDioceseOptions(
-          response.data.map((diocese) => ({ id: diocese.dioceseId, name: diocese.dioceseName }))
+          response.data.map((d) => ({ id: d.dioceseId, name: d.dioceseName }))
         );
       } catch {
         console.error("Failed to fetch diocese options.");
       }
     };
-
     fetchDioceseOptions();
-  }, []);
+  }, [token]);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!user) return <div>Please log in to view this page.</div>;
+  if (status === "loading") return <div>Loading...</div>;
+  if (!session?.user) return <div>Please log in to view this page.</div>;
 
   const handleDioceseChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDiocese = e.target.value;
@@ -64,12 +64,12 @@ const MembersPage: React.FC = () => {
     setParishOptions([]);
     setLocalChurchOptions([]);
 
-    if (selectedDiocese) {
+    if (selectedDiocese && token) {
       try {
         const response = await axios.get<ParishResponse[]>(`${BASE_ENDPOINT}/Churches/diocese-parishes/${selectedDiocese}`, {
-          headers: { Authorization: `Bearer ${await getAccessToken()}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setParishOptions(response.data.map((parish) => ({ id: parish.parishId, name: parish.parishName })));
+        setParishOptions(response.data.map((p) => ({ id: p.parishId, name: p.parishName })));
       } catch {
         console.error("Failed to fetch parish options.");
       }
@@ -82,12 +82,12 @@ const MembersPage: React.FC = () => {
     setLocalChurch("");
     setLocalChurchOptions([]);
 
-    if (selectedParish) {
+    if (selectedParish && token) {
       try {
         const response = await axios.get<LocalChurchResponse[]>(`${BASE_ENDPOINT}/Churches/parish/${selectedParish}`, {
-          headers: { Authorization: `Bearer ${await getAccessToken()}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setLocalChurchOptions(response.data.map((localChurch) => ({ id: localChurch.localChurchId, name: localChurch.localChurchName })));
+        setLocalChurchOptions(response.data.map((lc) => ({ id: lc.localChurchId, name: lc.localChurchName })));
       } catch {
         console.error("Failed to fetch local church options.");
       }

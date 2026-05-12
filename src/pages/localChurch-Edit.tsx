@@ -1,8 +1,10 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 import axios from "axios";
-import { BASE_ENDPOINT } from "../../public/contants/global-variables";
-import { getAccessToken } from "./api/get-access-token";
+import { BASE_ENDPOINT } from "../../public/constants/global-variables";
 import "../../styles/ChurchDetailsPage.css";
 
 import { LeadershipBoard, LocalChurch, Event, Clergy, ChurchMember, Announcement } from "../../types/interfaces";
@@ -12,11 +14,13 @@ import {
   fetchEventDetails,
   fetchBoardDetails,
   fetchAnnouncementDetails
-} from "../pages/api/apiService";
+} from "../lib/apiService";
 
 
 const ChurchDetailsPage = () => {
   const router = useRouter();
+  const { data: session } = useSession();
+  const token = session?.accessToken;
   const { LocalChurchID } = router.query;
   const [church, setChurch] = useState<LocalChurch | null>(null);
   const [clergy, setClergy] = useState<Clergy[] | null>(null);
@@ -27,65 +31,66 @@ const ChurchDetailsPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (LocalChurchID) {
-      fetchChurchDetails(LocalChurchID as string)
-        .then(setChurch)
+    if (LocalChurchID && token) {
+      fetchChurchDetails(LocalChurchID as string, token)
+        .then((data) => setChurch(data as LocalChurch))
         .catch(() => setError("Failed to fetch church details."));
     }
-  }, [LocalChurchID]);
+  }, [LocalChurchID, token]);
 
   useEffect(() => {
-    if (LocalChurchID) {
-      fetchClergyDetails(LocalChurchID as string)
-        .then(setClergy)
+    if (LocalChurchID && token) {
+      fetchClergyDetails(LocalChurchID as string, token)
+        .then((data) => setClergy(data as Clergy[]))
         .catch(() => router.push({ pathname: "/404" }));
     }
-  }, [LocalChurchID]);
+  }, [LocalChurchID, token, router]);
 
   useEffect(() => {
-    if (LocalChurchID) {
-      fetchEventDetails(LocalChurchID as string)
-        .then(setEvents)
+    if (LocalChurchID && token) {
+      fetchEventDetails(LocalChurchID as string, token)
+        .then((data) => setEvents(data as Event[]))
         .catch(() => setError("Failed to fetch event details."));
     }
-  }, [LocalChurchID]);
+  }, [LocalChurchID, token]);
 
   useEffect(() => {
-    if (LocalChurchID) {
-      fetchBoardDetails(LocalChurchID as string)
-        .then(setBoards)
+    if (LocalChurchID && token) {
+      fetchBoardDetails(LocalChurchID as string, token)
+        .then((data) => setBoards(data as LeadershipBoard[]))
         .catch(() => setError("Failed to fetch board details."));
     }
-  }, [LocalChurchID]);
+  }, [LocalChurchID, token]);
 
   useEffect(() => {
-    if (LocalChurchID) {
-      fetchAnnouncementDetails(LocalChurchID as string)
-        .then(setAnnouncements)
+    if (LocalChurchID && token) {
+      fetchAnnouncementDetails(LocalChurchID as string, token)
+        .then((data) => setAnnouncements(data as Announcement[]))
         .catch(() => setError("Failed to fetch announcement details."));
     }
-  }, [LocalChurchID]);
+  }, [LocalChurchID, token]);
 
   const handleFetchMembers = async () => {
-        try {
-        if (!LocalChurchID) {
-            setError("Local Church ID is not available.");
-            return;
-        }
-    
-        const token = await getAccessToken();
-        const response = await axios.get(
-            `${BASE_ENDPOINT}/Members/local-church/${LocalChurchID}`, // Adjust API endpoint as needed
-            {
-            headers: { Authorization: `Bearer ${token}` },
-            }
-        );
-        setMembers(response.data);
-        setError(null); // Clear previous errors
-        } catch (err) {
-        setError("Failed to fetch members: " + err);
-        }
-    };
+    try {
+      if (!LocalChurchID) {
+        setError("Local Church ID is not available.");
+        return;
+      }
+      if (!token) {
+        setError("Not authenticated.");
+        return;
+      }
+
+      const response = await axios.get(
+        `${BASE_ENDPOINT}/Members/local-church/${LocalChurchID}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMembers(response.data);
+      setError(null);
+    } catch (err) {
+      setError("Failed to fetch members: " + err);
+    }
+  };
   const [currentSlide, setCurrentSlide] = useState(0);
   const galleryImages = Array.from({ length: 10 }).map((_, index) => 
     `/images/gallery/church${index + 1}.jpg`
@@ -294,7 +299,7 @@ const ChurchDetailsPage = () => {
                         <strong>Location:</strong> {event.eventLocationChurch}
                       </p>
                       <p>
-                        <strong>Time:</strong> {formatEventDateTime(event.eventStratDate, event.eventStratTime, event.eventEndDate, event.eventEndTime)}
+                        <strong>Time:</strong> {formatEventDateTime(event.eventStartDate, event.eventStartTime, event.eventEndDate, event.eventEndTime)}
                       </p>
                       
                     </div>
@@ -358,7 +363,7 @@ const ChurchDetailsPage = () => {
                         <img src="/images/announcement.svg" alt="Microphone Icon" className="announcement-icon" />
                         <h3><strong>{getLevelText(announcement.announcementLevel)}</strong>: {announcement.announcementTitle}</h3>
                         <p>{announcement.announcementDescription}</p>
-                        <p><strong>Date:</strong> {new Date(announcement.announcementStratDate).toLocaleDateString()}</p>
+                        <p><strong>Date:</strong> {new Date(announcement.announcementStartDate).toLocaleDateString()}</p>
                     </div>
                 ))
                 ) : (

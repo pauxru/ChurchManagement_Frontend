@@ -1,0 +1,95 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { apiFetch } from "@/lib/apiClient";
+
+interface AdminAssignment {
+  adminAssignmentId: number;
+  userAccountId: string;
+  adminLevel: number;
+  adminLevelID: number;
+  isActive: boolean;
+}
+
+interface ScopeResponse {
+  isNationalRoleAdmin: boolean;
+  assignments: AdminAssignment[];
+}
+
+const LEVEL_NAMES: Record<number, string> = {
+  1: "Local Church",
+  2: "Parish",
+  3: "Diocese",
+  4: "Archdiocese",
+  5: "National",
+};
+
+export default function AdminDashboard() {
+  const { data: session, status } = useSession();
+  const token = session?.accessToken;
+  const [scope, setScope] = useState<ScopeResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    apiFetch<ScopeResponse>("/Admin/me/scope", token).then(setScope).catch((e) => setError(e.message));
+  }, [token]);
+
+  if (status === "loading") return <div className="p-8">Loading...</div>;
+  if (!session?.user) return <div className="p-8">Please sign in.</div>;
+
+  const isAdmin = scope && (scope.isNationalRoleAdmin || scope.assignments.length > 0);
+
+  return (
+    <div className="container mx-auto px-6 py-8 max-w-4xl">
+      <h1 className="text-3xl font-bold mb-2">Admin dashboard</h1>
+      {error && <p className="text-red-700 mb-3">{error}</p>}
+
+      {!isAdmin && scope && (
+        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded">
+          <p>You don&apos;t currently have admin scope. Ask a National admin to grant you a role.</p>
+        </div>
+      )}
+
+      {isAdmin && (
+        <div className="space-y-6">
+          <section>
+            <h2 className="text-xl font-semibold mb-2">Your scope</h2>
+            {scope.isNationalRoleAdmin && (
+              <div className="bg-purple-50 border border-purple-200 p-3 rounded mb-2">
+                <strong>National admin</strong> (granted via Entra app role)
+              </div>
+            )}
+            <ul className="space-y-2">
+              {scope.assignments.map((a) => (
+                <li key={a.adminAssignmentId} className="bg-blue-50 border border-blue-200 p-3 rounded">
+                  Admin of {LEVEL_NAMES[a.adminLevel]} #{a.adminLevelID}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-2">Quick links</h2>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <li>
+                <Link href="/admin/link-requests" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
+                  <div className="font-semibold">Link requests</div>
+                  <div className="text-sm text-gray-600">Approve members and clergy claiming a record.</div>
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin/import" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
+                  <div className="font-semibold">Bulk import</div>
+                  <div className="text-sm text-gray-600">Upload CSV files to load hierarchy or member data.</div>
+                </Link>
+              </li>
+            </ul>
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -63,8 +63,8 @@ export interface Event {
     eventCategory?: string;
     eventLevel: number;
     eventLevelID: number;
-    eventStratDate: string;
-    eventStratTime: string;
+    eventStartDate: string;
+    eventStartTime: string;
     eventEndDate: string;
     eventEndTime: string;
     eventOrganizers: string;
@@ -83,7 +83,7 @@ export interface Announcement {
     announcementTargetAudience?: string;
     announcementLevel: number;
     announcementLevelID: number;
-    announcementStratDate: Date;
+    announcementStartDate: Date;
     announcementActive?: number;
   }
 

@@ -1,22 +1,20 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { withPageAuthRequired } from "@auth0/nextjs-auth0";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/contants/global-variables";
+import { CHURCH_NAME, BASE_ENDPOINT } from "../../public/constants/global-variables";
 import axios from "axios";
 import "../app/globals.css";
-import { getAccessToken } from "../pages/api/get-access-token";
-import { GetServerSideProps } from "next";
-
 
 interface LocalChurch {
-    localChurchId: number;
-    localChurchName: string;
-    localChurchDescription: string;
-    localChurchLocation: string;
-    localChurchClass: string;
-    localChurchAddress: string;
-    localChurchParishID: string;
+  localChurchId: number;
+  localChurchName: string;
+  localChurchDescription: string;
+  localChurchLocation: string;
+  localChurchClass: string;
+  localChurchAddress: string;
+  localChurchParishID: string;
 }
 
 interface Option {
@@ -34,7 +32,8 @@ interface Parish {
 }
 
 const LocalChurchesPage = () => {
-  const { user, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const token = session?.accessToken;
   const [dioceseOptions, setDioceseOptions] = useState<Option[]>([]);
   const [parishOptions, setParishOptions] = useState<Option[]>([]);
   const [localChurches, setLocalChurches] = useState<LocalChurch[]>([]);
@@ -45,36 +44,21 @@ const LocalChurchesPage = () => {
   const router = useRouter();
 
   useEffect(() => {
+    if (!token) return;
     const fetchDioceses = async () => {
       try {
-        console.log("Fetching dioceses...");
-  
-        const token = await getAccessToken();
-        console.log("Access token:", token);
-  
-        console.log("Making request to:", `/api/Churches/diocese`);
-        const response = await axios.get(`/api/Churches/diocese`, {
+        const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-  
-        console.log("Response received:", response);
-        
         setDioceseOptions(response.data.map((d: Diocese) => ({ id: d.dioceseId, name: d.dioceseName })));
       } catch (err) {
-        console.error("Error fetching dioceses:", err);
-        router.push('/404');
         setError("Failed to fetch dioceses.");
+        console.error(err);
       }
     };
-  
-    if (user) {
-      console.log("User is available:", user);
-      fetchDioceses();
-    } else {
-      console.log("User is not available yet.");
-    }
-  }, [user]);
- 
+    fetchDioceses();
+  }, [token]);
+
   const handleDioceseChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const dioceseId = e.target.value;
     setSelectedDiocese(dioceseId);
@@ -82,15 +66,13 @@ const LocalChurchesPage = () => {
     setLocalChurches([]);
     setParishOptions([]);
 
-    if (dioceseId) {
+    if (dioceseId && token) {
       try {
-        const token = await getAccessToken();
         const response = await axios.get(`${BASE_ENDPOINT}/Churches/diocese-parishes/${dioceseId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setParishOptions(response.data.map((p: Parish) => ({ id: p.parishId, name: p.parishName })));
       } catch (err) {
-        router.push('/404');
         setError("Failed to fetch parishes.");
         console.error(err);
       }
@@ -102,10 +84,9 @@ const LocalChurchesPage = () => {
     setSelectedParish(parishId);
     setLocalChurches([]);
 
-    if (parishId) {
+    if (parishId && token) {
       try {
         setLoading(true);
-        const token = await getAccessToken();
         const response = await axios.get(`${BASE_ENDPOINT}/Churches/parish/${parishId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -121,13 +102,13 @@ const LocalChurchesPage = () => {
 
   const handleNavigateToDetails = (localChurchId: number) => {
     router.push({
-      pathname: './localChurch-Edit',
+      pathname: "./localChurch-Edit",
       query: { LocalChurchID: JSON.stringify(localChurchId) },
     });
   };
 
-  if (isLoading || loading) return <div>Loading...</div>;
-  if (!user) return <div>Please log in to view this page.</div>;
+  if (status === "loading" || loading) return <div>Loading...</div>;
+  if (!session?.user) return <div>Please log in to view this page.</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
@@ -205,7 +186,5 @@ const LocalChurchesPage = () => {
     </div>
   );
 };
-
-export const getServerSideProps: GetServerSideProps = withPageAuthRequired();
 
 export default LocalChurchesPage;
