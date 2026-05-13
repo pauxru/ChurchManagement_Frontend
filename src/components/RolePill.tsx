@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { RoleTier } from "@/auth";
 
-// Color-coded pill in the navbar that signals which profile is loaded.
 // Tier mapping is computed server-side (ProfileService.ResolveRoleLabelAsync)
 // so client + server never disagree.
 export function RolePill() {
@@ -26,5 +25,13 @@ export function RolePill() {
       className += " bg-gray-100 text-gray-700 border border-gray-300"; break;
   }
 
-  return <span className={className} title={`Role: ${role.label}`}>{role.label}</span>;
+  return (
+    <span
+      className={className}
+      title={`Role: ${role.label}`}
+      aria-label={`Role: ${role.label}`}
+    >
+      {role.label}
+    </span>
+  );
 }
