@@ -10,9 +10,10 @@ export function Navbar() {
       <div className="container mx-auto px-6 py-3 flex items-center justify-between gap-4">
         <ul className="hidden md:flex items-center gap-1 text-sm">
           <li><Link href="/" className="px-3 py-2 hover:bg-white/10 rounded">Home</Link></li>
-          <li><a href="#about" className="px-3 py-2 hover:bg-white/10 rounded">About</a></li>
-          <li><a href="#bishops" className="px-3 py-2 hover:bg-white/10 rounded">Bishops</a></li>
-          <li><a href="#contact" className="px-3 py-2 hover:bg-white/10 rounded">Contact</a></li>
+          <li><Link href="/churches" className="px-3 py-2 hover:bg-white/10 rounded">Churches</Link></li>
+          <li><Link href="/clergy" className="px-3 py-2 hover:bg-white/10 rounded">Clergy</Link></li>
+          <li><Link href="/events" className="px-3 py-2 hover:bg-white/10 rounded">Events</Link></li>
+          <li><Link href="/announcements" className="px-3 py-2 hover:bg-white/10 rounded">Announcements</Link></li>
         </ul>
 
         <div className="flex items-center gap-3">
