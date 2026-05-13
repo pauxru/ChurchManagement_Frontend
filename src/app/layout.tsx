@@ -1,8 +1,7 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import './globals.css';
-import AppWrapper from '../../contexts/AppWrapper'; // Import the AppWrapper component
+import AppWrapper from '../../contexts/AppWrapper';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,14 +25,14 @@ export const metadata: Metadata = {
     siteName: "AIPCA Gatundu Diocese",
     title: "AIPCA · Gatundu Diocese",
     description: "AIPCA Gatundu Diocese — manage local churches, plans, finances, and announcements across the diocese.",
-    images: ["/og-image.svg"],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "AIPCA · Gatundu Diocese" }],
     locale: "en_KE",
   },
   twitter: {
     card: "summary_large_image",
     title: "AIPCA · Gatundu Diocese",
     description: "AIPCA Gatundu Diocese — manage local churches, plans, finances, and announcements across the diocese.",
-    images: ["/og-image.svg"],
+    images: ["/og-image.png"],
   },
 };
 
