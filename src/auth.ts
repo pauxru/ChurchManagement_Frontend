@@ -14,6 +14,11 @@ interface OfficialScope {
   status: number;
   rejectionReason: number | null;
 }
+interface RoleLabel {
+  tier: 0 | 1 | 2 | 3 | 4;   // 0=Unverified, 1=LCOfficial, 2=Bishop, 3=Archbishop, 4=National
+  label: string;
+  contextId: number | null;
+}
 interface Profile {
   userId: string;
   displayName: string;
@@ -22,6 +27,7 @@ interface Profile {
   preferredLanguage: number;
   profilePictureBlobName: string | null;
   officials: OfficialScope[];
+  roleLabel: RoleLabel;
 }
 
 declare module "next-auth" {
@@ -169,4 +175,12 @@ export const OfficialVerificationStatus = {
   Verified: 4,
   Rejected: 5,
   Disabled: 6,
+} as const;
+
+export const RoleTier = {
+  Unverified: 0,
+  LocalChurchOfficial: 1,
+  Bishop: 2,
+  Archbishop: 3,
+  National: 4,
 } as const;

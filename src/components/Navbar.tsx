@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { UserMenu } from "./UserMenu";
+import { RolePill } from "./RolePill";
 
 // Diocese-branded top navigation. Public links on the left; UserMenu on the right.
 // LC/Admin/Diocese links live INSIDE UserMenu's modal so the top bar stays clean.
@@ -24,7 +25,10 @@ export function Navbar() {
           <li><a href="#contact" className="px-3 py-2 hover:bg-white/10 rounded">Contact</a></li>
         </ul>
 
-        <UserMenu />
+        <div className="flex items-center gap-3">
+          <RolePill />
+          <UserMenu />
+        </div>
       </div>
     </nav>
   );
