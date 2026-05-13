@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#991b1b"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="556" y="120" width="88" height="390" fill="#fde047"/>
+  <rect x="426" y="240" width="348" height="88" fill="#fde047"/>
+  <text x="600" y="555" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="48" font-weight="bold">AIPCA · Gatundu Diocese</text>
+  <text x="600" y="600" text-anchor="middle" fill="#fecaca" font-family="Arial, sans-serif" font-size="22">Nairobi Archdiocese</text>
+</svg>
