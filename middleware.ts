@@ -30,11 +30,19 @@ export default auth(async (req) => {
     }
   }
 
-  // Public allow-list.
+  // Public allow-list. These routes are reachable without auth and have no
+  // gated content — public landing/marketing + the four Stream C browse
+  // pages + the standalone error page.
   if (
     pathname === "/" ||
     pathname.startsWith("/login") ||
+    pathname.startsWith("/auth-error") ||
     pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/near-me") ||
+    pathname.startsWith("/churches") ||
+    pathname.startsWith("/clergy") ||
+    pathname.startsWith("/events") ||
+    pathname.startsWith("/announcements") ||
     pathname === "/signup/complete" ||
     pathname.startsWith("/signup/complete/") ||
     pathname.startsWith("/_next") ||
