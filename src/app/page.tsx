@@ -2,7 +2,11 @@ import { Navbar } from "@/components/Navbar";
 import { VerseOfTheDay } from "@/components/VerseOfTheDay";
 import { LeadershipCard } from "@/components/LeadershipCard";
 
-export const revalidate = 300;
+// Home page server-renders every request so admin edits to bishops /
+// clergy / theme / etc. show up immediately instead of waiting for the
+// ISR cache to expire. The fetch payload is tiny — there's no perf
+// reason to cache it.
+export const dynamic = "force-dynamic";
 
 interface ClergyDto {
   clergyId: number;
@@ -25,7 +29,7 @@ async function loadLeadership(): Promise<Leadership> {
   const empty: Leadership = { presidingArchbishop: null, archdioceseArchbishop: null, gatunduBishops: [] };
   const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
   try {
-    const res = await fetch(`${base}/public/clergy`, { next: { revalidate: 300 } });
+    const res = await fetch(`${base}/public/clergy`, { cache: "no-store" });
     if (!res.ok) return empty;
     const all = (await res.json()) as ClergyDto[];
     return {
