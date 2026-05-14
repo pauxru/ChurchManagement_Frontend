@@ -204,23 +204,24 @@ export function UserMenu({ size = 36 }: Props) {
                   Complete verification
                 </Link>
               )}
+              {/* Admin dashboard is reachable for any signed-in user; the
+                  /admin page itself shows a friendly "you don't have admin
+                  scope" notice for non-admins instead of 404'ing.            */}
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="block px-6 py-2.5 hover:bg-gray-50 text-sm"
+              >
+                Admin dashboard
+              </Link>
               {isAdmin && (
-                <>
-                  <Link
-                    href="/admin"
-                    onClick={() => setOpen(false)}
-                    className="block px-6 py-2.5 hover:bg-gray-50 text-sm"
-                  >
-                    Admin dashboard
-                  </Link>
-                  <Link
-                    href="/diocese/1"
-                    onClick={() => setOpen(false)}
-                    className="block px-6 py-2.5 hover:bg-gray-50 text-sm"
-                  >
-                    Diocese overview
-                  </Link>
-                </>
+                <Link
+                  href="/diocese/1"
+                  onClick={() => setOpen(false)}
+                  className="block px-6 py-2.5 hover:bg-gray-50 text-sm"
+                >
+                  Diocese overview
+                </Link>
               )}
             </nav>
 

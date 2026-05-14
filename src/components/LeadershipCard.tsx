@@ -3,6 +3,7 @@ interface ClergyDto {
   clergyName: string;
   assignmentName: string | null;
   ordinationYear?: number | null;
+  photoUrl?: string | null;
 }
 
 interface Props {
@@ -42,13 +43,19 @@ export function LeadershipCard({
   const tokens = SIZE_TOKENS[size];
   const name = clergy?.clergyName ?? fallbackName ?? "To be announced";
   const assignment = clergy?.assignmentName ?? fallbackAssignment ?? null;
+  const photo = clergy?.photoUrl ?? null;
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-      <div className={`${tokens.aspect} bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-        <span className={`text-white ${tokens.initials} font-bold opacity-90`}>
-          {clergyInitials(name)}
-        </span>
+      <div className={`${tokens.aspect} bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo} alt={name} className="w-full h-full object-cover" />
+        ) : (
+          <span className={`text-white ${tokens.initials} font-bold opacity-90`}>
+            {clergyInitials(name)}
+          </span>
+        )}
       </div>
       <div className="p-4 text-center">
         <p className={`text-red-700 font-medium ${tokens.title}`}>{titleLabel}</p>

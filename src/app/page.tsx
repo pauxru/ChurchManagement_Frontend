@@ -12,6 +12,7 @@ interface ClergyDto {
   level: number;
   assignmentName: string | null;
   ordinationYear: number | null;
+  photoUrl: string | null;
 }
 
 interface Leadership {
@@ -188,6 +189,34 @@ export default async function Home() {
 
           <p className="mt-8 text-center text-xs text-gray-400">
             Photos and details are configurable by the diocesan admin.
+          </p>
+        </div>
+      </section>
+
+      {/* Parishes */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-6 max-w-4xl">
+          <h2 className="text-3xl font-bold text-center text-red-800">Our Parishes</h2>
+          <p className="mt-3 text-center text-gray-600 max-w-2xl mx-auto">
+            Gatundu Diocese is organised into 13 parishes spread across the
+            sub-county. The diocesan headquarters is at Gatundu Cathedral.
+          </p>
+          <ul className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {[
+              "Gakoe", "Mithurumbi", "Kiamwathi", "Gachoka", "Kiamwangi",
+              "Nembu", "Kiamwori", "Gachika", "Gikindu", "Karuri",
+              "Kairi", "Kamunyaka", "Kiganjo",
+            ].map((p) => (
+              <li
+                key={p}
+                className="bg-gray-50 border border-gray-200 rounded px-3 py-2 text-center text-sm font-medium text-gray-800"
+              >
+                {p}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 text-center text-xs text-gray-400">
+            Headquarters: <span className="font-semibold">Gatundu Cathedral</span> (Gakoe Parish)
           </p>
         </div>
       </section>
