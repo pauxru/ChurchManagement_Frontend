@@ -1,87 +1,88 @@
 import { NextResponse } from "next/server";
 import { auth, OfficialVerificationStatus } from "@/auth";
 
-// Middleware:
-//   1. Auto-redirect verified LC officials from "/" to their LC workspace
-//      (one-shot on initial landing after sign-in; navbar still links back to "/").
-//   2. Require signed-in for any /lc/* or /diocese/* or /admin/* or /signup/*.
-//   3. If signed in but the user's official record isn't Verified, force them
-//      through /signup/complete (except when they're already there).
-//   4. Public routes (/, /login, /api/auth/*) skip the check otherwise.
+// Routes a signed-in but unverified user MAY still reach.
+//   - the verification flow itself
+//   - sign-out / auth endpoints
+//   - auth-error display
+//   - static assets
+// Everything else funnels them back to /signup/complete.
+const UNVERIFIED_ALLOWED_PREFIXES = [
+  "/signup/complete",
+  "/api/auth",
+  "/auth-error",
+  "/forbidden",
+  "/_next",
+  "/favicon",
+  "/aipca-logo",
+  "/bishops",
+  "/og-image",
+  "/images",
+];
+
+// Routes anonymous users may reach without signing in.
+const ANON_ALLOWED_PREFIXES = [
+  "/login",
+  "/api/auth",
+  "/auth-error",
+  "/forbidden",
+  "/near-me",
+  "/churches",
+  "/clergy",
+  "/events",
+  "/announcements",
+  "/_next",
+  "/favicon",
+  "/aipca-logo",
+  "/bishops",
+  "/og-image",
+  "/images",
+];
+
+function startsWithAny(path: string, prefixes: string[]): boolean {
+  return prefixes.some(p => path === p || path.startsWith(p + "/") || path.startsWith(p));
+}
+
 export default auth(async (req) => {
   const { pathname } = req.nextUrl;
 
+  // Anonymous: public landing + the four Stream C browse pages are open;
+  // everything else routes to /login.
+  if (!req.auth) {
+    if (pathname === "/" || startsWithAny(pathname, ANON_ALLOWED_PREFIXES)) {
+      return NextResponse.next();
+    }
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  const roles = req.auth.user?.roles ?? [];
+  const isAdmin = roles.includes("Admin");
+  const officials = req.auth.profile?.officials ?? [];
+  const isVerified = officials.some(o => o.status === OfficialVerificationStatus.Verified);
+
   // Auto-redirect a verified LC official from the bare root to their LC
-  // workspace. Admins are exempt — they stay on "/" to see the diocese
-  // overview. Officials browsing public pages (#about anchors, /churches
-  // when those exist) hit those routes directly, not "/", so they aren't
-  // bounced; this is intentionally scoped to "/" only.
-  if (pathname === "/" && req.auth) {
-    const roles = req.auth.user?.roles ?? [];
-    const isAdmin = roles.includes("Admin");
-    if (!isAdmin) {
-      const officials = req.auth.profile?.officials ?? [];
-      const verified = officials.find(
-        o => o.status === OfficialVerificationStatus.Verified && o.localChurchId,
-      );
-      if (verified?.localChurchId) {
-        return NextResponse.redirect(new URL(`/lc/${verified.localChurchId}`, req.url));
-      }
+  // workspace. Admins stay on "/" to see the landing page + diocese overview.
+  if (pathname === "/" && !isAdmin) {
+    const verified = officials.find(
+      o => o.status === OfficialVerificationStatus.Verified && o.localChurchId,
+    );
+    if (verified?.localChurchId) {
+      return NextResponse.redirect(new URL(`/lc/${verified.localChurchId}`, req.url));
     }
   }
 
-  // Public allow-list. These routes are reachable without auth and have no
-  // gated content — public landing/marketing + the four Stream C browse
-  // pages + the standalone error page.
-  if (
-    pathname === "/" ||
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/auth-error") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/near-me") ||
-    pathname.startsWith("/churches") ||
-    pathname.startsWith("/clergy") ||
-    pathname.startsWith("/events") ||
-    pathname.startsWith("/announcements") ||
-    pathname === "/signup/complete" ||
-    pathname.startsWith("/signup/complete/") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.startsWith("/images")
-  ) {
-    return NextResponse.next();
-  }
-
-  // Gated routes.
-  const gated =
-    pathname.startsWith("/lc/") ||
-    pathname.startsWith("/diocese/") ||
-    pathname.startsWith("/admin");
-
-  if (!gated) return NextResponse.next();
-
-  if (!req.auth) {
-    const url = new URL("/login", req.url);
-    return NextResponse.redirect(url);
-  }
-
-  // Admin role bypass — Bishops and admins can hit any gated route regardless
-  // of personal verification status. Their access is enforced by the backend.
-  const roles = req.auth.user?.roles ?? [];
-  if (roles.includes("Admin")) return NextResponse.next();
-
-  // /admin routes for ordinary users: backend will 403 if they have no
-  // AdminAssignment. Don't redirect them through signup.
-  if (pathname.startsWith("/admin")) return NextResponse.next();
-
-  // /lc/* and /diocese/* require a Verified LocalChurchOfficial. The profile
-  // is cached on the session JWT (refreshed every 5 min in auth.ts).
-  const officials = req.auth.profile?.officials ?? [];
-  const isVerified = officials.some(o => o.status === OfficialVerificationStatus.Verified);
-  if (!isVerified) {
+  // Signed in but NOT verified and NOT admin: lock the session to the
+  // verification flow + a small allowlist. Any other route bounces back
+  // to /signup/complete so the user can only finish verification.
+  if (!isAdmin && !isVerified) {
+    if (startsWithAny(pathname, UNVERIFIED_ALLOWED_PREFIXES)) {
+      return NextResponse.next();
+    }
     return NextResponse.redirect(new URL("/signup/complete", req.url));
   }
 
+  // Verified user or admin: free roam through gated routes. The backend
+  // still enforces per-resource scope (403 → /forbidden via apiClient).
   return NextResponse.next();
 });
 

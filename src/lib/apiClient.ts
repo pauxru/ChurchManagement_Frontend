@@ -29,6 +29,21 @@ export async function apiFetch<T = unknown>(
     throw new Error("Authentication required");
   }
 
+  if (res.status === 403) {
+    // Backend says "you can't have this resource" — show the friendly
+    // /forbidden page rather than letting callers render an opaque error.
+    // Encode the originating path so the page can give a specific hint.
+    if (typeof window !== "undefined") {
+      const reason = path.startsWith("/Lc/") ? "wrong-lc"
+                   : path.startsWith("/Admin") ? "no-admin"
+                   : path.startsWith("/Bishop") ? "not-bishop"
+                   : "default";
+      const target = path.startsWith("/Lc/") ? path.split("/")[2] : "";
+      window.location.href = `/forbidden?reason=${reason}${target ? `&target=LC%20${target}` : ""}`;
+    }
+    throw new Error("Forbidden");
+  }
+
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`${res.status} ${res.statusText}: ${text}`);
