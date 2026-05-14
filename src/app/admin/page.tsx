@@ -40,7 +40,12 @@ export default function AdminDashboard() {
   if (status === "loading") return <div className="p-8">Loading...</div>;
   if (!session?.user) return <div className="p-8">Please sign in.</div>;
 
-  const isAdmin = scope && (scope.isNationalRoleAdmin || scope.assignments.length > 0);
+  // When verification is globally disabled, every signed-in user gets the
+  // full admin dashboard — matches the backend's AppPolicy bypass so the
+  // UI doesn't fight the API. Set NEXT_PUBLIC_REQUIRE_VERIFICATION=true to
+  // restore scope-based gating.
+  const requireVerification = process.env.NEXT_PUBLIC_REQUIRE_VERIFICATION !== "false";
+  const isAdmin = !requireVerification || (scope && (scope.isNationalRoleAdmin || scope.assignments.length > 0));
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-4xl">
@@ -55,21 +60,30 @@ export default function AdminDashboard() {
 
       {isAdmin && (
         <div className="space-y-6">
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Your scope</h2>
-            {scope.isNationalRoleAdmin && (
-              <div className="bg-purple-50 border border-purple-200 p-3 rounded mb-2">
-                <strong>National admin</strong> (granted via Entra app role)
-              </div>
-            )}
-            <ul className="space-y-2">
-              {scope.assignments.map((a) => (
-                <li key={a.adminAssignmentId} className="bg-blue-50 border border-blue-200 p-3 rounded">
-                  Admin of {LEVEL_NAMES[a.adminLevel]} #{a.adminLevelID}
-                </li>
-              ))}
-            </ul>
-          </section>
+          {!requireVerification && (!scope || (!scope.isNationalRoleAdmin && scope.assignments.length === 0)) && (
+            <div className="bg-gray-50 border border-gray-200 p-3 rounded text-sm text-gray-700">
+              RBAC is currently disabled (<code>AppPolicy:RequireVerification=false</code>) — every signed-in user
+              sees the full admin surface. Flip <code>REQUIRE_VERIFICATION=true</code> in <code>.env.deploy</code>
+              once real admin assignments are in place.
+            </div>
+          )}
+          {scope && (scope.isNationalRoleAdmin || scope.assignments.length > 0) && (
+            <section>
+              <h2 className="text-xl font-semibold mb-2">Your scope</h2>
+              {scope.isNationalRoleAdmin && (
+                <div className="bg-purple-50 border border-purple-200 p-3 rounded mb-2">
+                  <strong>National admin</strong> (granted via Entra app role)
+                </div>
+              )}
+              <ul className="space-y-2">
+                {scope.assignments.map((a) => (
+                  <li key={a.adminAssignmentId} className="bg-blue-50 border border-blue-200 p-3 rounded">
+                    Admin of {LEVEL_NAMES[a.adminLevel]} #{a.adminLevelID}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section>
             <h2 className="text-xl font-semibold mb-2">Manage content</h2>
