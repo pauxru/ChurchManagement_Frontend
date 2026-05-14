@@ -9,6 +9,10 @@ export function RolePill() {
   const { data: session } = useSession();
   const role = session?.profile?.roleLabel;
   if (!role) return null;
+  // Don't shame unverified users with a constant "Awaiting Verification" tag.
+  // The verification flow is reachable from the user menu; the pill is for
+  // people who actually have a role to show off.
+  if (role.tier === RoleTier.Unverified) return null;
 
   let className = "px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide whitespace-nowrap";
   switch (role.tier) {
@@ -20,7 +24,6 @@ export function RolePill() {
       className += " bg-yellow-100 text-yellow-900 border border-yellow-300"; break;
     case RoleTier.LocalChurchOfficial:
       className += " bg-blue-100 text-blue-900 border border-blue-300"; break;
-    case RoleTier.Unverified:
     default:
       className += " bg-gray-100 text-gray-700 border border-gray-300"; break;
   }

@@ -108,7 +108,9 @@ export function ChurchesView({ churches }: Props) {
           {Array.from(grouped.entries()).map(([dioceseName, parishMap]) => (
             <section key={dioceseName}>
               <h2 className="text-xl font-bold text-red-900 border-b border-red-200 pb-1 mb-4">
-                {dioceseName === "Unassigned" ? "Diocese (unassigned)" : `${dioceseName} Diocese`}
+                {dioceseName === "Unassigned"
+                  ? "Diocese (unassigned)"
+                  : `${dioceseName.replace(/\s+Diocese$/i, "")} Diocese`}
               </h2>
               <div className="space-y-6">
                 {Array.from(parishMap.entries())
@@ -116,7 +118,9 @@ export function ChurchesView({ churches }: Props) {
                   .map(([parishName, parishChurches]) => (
                     <div key={parishName}>
                       <h3 className="text-sm uppercase tracking-widest text-gray-500 mb-3">
-                        {parishName === "Unassigned" ? "Parish (unassigned)" : `${parishName} Parish`}
+                        {parishName === "Unassigned"
+                          ? "Parish (unassigned)"
+                          : `${parishName.replace(/\s+Parish$/i, "")} Parish`}
                         <span className="text-gray-400 normal-case tracking-normal ml-2">
                           · {parishChurches.length}
                         </span>

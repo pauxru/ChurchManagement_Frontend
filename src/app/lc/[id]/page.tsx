@@ -21,6 +21,12 @@ interface LcDetail {
   contactPhone: string | null;
   contactEmail: string | null;
   websiteUrl: string | null;
+  monthlyCessAmount: number | null;
+}
+
+function formatKes(amount: number | null | undefined): string {
+  if (amount == null) return "Not yet set";
+  return new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 }).format(amount);
 }
 
 const MANAGE_TILES = [
@@ -80,6 +86,18 @@ export default function LcOverviewPage() {
             className="absolute inset-0 w-full h-full object-cover opacity-40"
           />
         )}
+        {signedIn && (
+          <Link
+            href={`/admin/local-churches?focus=${lc.localChurchId}`}
+            className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full p-2 transition"
+            aria-label="Edit this church"
+            title="Edit this church"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+              <path d="M17.414 2.586a2 2 0 00-2.828 0L4 13.172V16h2.828L17.414 5.414a2 2 0 000-2.828z" />
+            </svg>
+          </Link>
+        )}
         <div className="relative container mx-auto px-6 py-20 text-center">
           <div className="flex flex-col items-center gap-4">
             {lc.logoUrl ? (
@@ -102,9 +120,9 @@ export default function LcOverviewPage() {
             <h1 className="text-4xl md:text-5xl font-extrabold">{lc.localChurchName}</h1>
             {(lc.parishName || lc.dioceseName) && (
               <p className="text-lg text-red-100">
-                {lc.parishName && <>{lc.parishName} Parish</>}
+                {lc.parishName && <>{lc.parishName.replace(/\s+Parish$/i, "")} Parish</>}
                 {lc.parishName && lc.dioceseName && <> · </>}
-                {lc.dioceseName && <>{lc.dioceseName} Diocese</>}
+                {lc.dioceseName && <>{lc.dioceseName.replace(/\s+Diocese$/i, "")} Diocese</>}
               </p>
             )}
             <p className="mt-2 text-yellow-200 italic">AIPCA · Africa Independent Pentecostal Church of Africa</p>
@@ -132,13 +150,24 @@ export default function LcOverviewPage() {
               </p>
             )}
           </div>
-          <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-6">
-            <h2 className="text-lg font-bold text-yellow-900 mb-3">Service times</h2>
-            {lc.serviceTimes ? (
-              <p className="text-yellow-900 whitespace-pre-line">{lc.serviceTimes}</p>
-            ) : (
-              <p className="text-yellow-700/70 italic text-sm">Not yet listed.</p>
-            )}
+          <div className="space-y-4">
+            <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-6">
+              <h2 className="text-lg font-bold text-yellow-900 mb-3">Service times</h2>
+              {lc.serviceTimes ? (
+                <p className="text-yellow-900 whitespace-pre-line">{lc.serviceTimes}</p>
+              ) : (
+                <p className="text-yellow-700/70 italic text-sm">Not yet listed.</p>
+              )}
+            </div>
+            <div className="bg-red-50 rounded-lg border border-red-200 p-6">
+              <h2 className="text-lg font-bold text-red-900 mb-2">Monthly cess</h2>
+              <p className="text-2xl font-bold text-red-800">{formatKes(lc.monthlyCessAmount)}</p>
+              <p className="text-xs text-red-700/70 mt-1">
+                {lc.monthlyCessAmount == null
+                  ? "Awaiting Bishop's allocation."
+                  : "Set by the diocesan office."}
+              </p>
+            </div>
           </div>
         </section>
 

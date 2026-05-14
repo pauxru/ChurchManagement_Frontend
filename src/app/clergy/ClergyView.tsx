@@ -7,6 +7,7 @@ export interface ClergyDto {
   clergyName: string;
   rank: number;
   rankLabel: string;
+  salutation: string;
   level: number;
   assignmentName: string | null;
   ordinationYear: number | null;
@@ -155,12 +156,11 @@ export function ClergyView({ clergy }: Props) {
                         {initials(c.clergyName)}
                       </div>
                     )}
-                    <h3 className="mt-3 font-semibold">{c.clergyName}</h3>
+                    <h3 className="mt-3 font-semibold">
+                      {c.salutation ? `${c.salutation}. ` : ""}{c.clergyName}
+                    </h3>
                     {c.assignmentName && (
                       <p className="mt-1 text-sm text-gray-600">{c.assignmentName}</p>
-                    )}
-                    {c.ordinationYear && (
-                      <p className="mt-2 text-xs text-gray-500">Ordained {c.ordinationYear}</p>
                     )}
                   </li>
                 ))}

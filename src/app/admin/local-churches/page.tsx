@@ -31,6 +31,7 @@ interface ChurchFull {
   contactPhone: string | null;
   contactEmail: string | null;
   websiteUrl: string | null;
+  monthlyCessAmount: number | null;
 }
 
 export default function AdminLocalChurchesPage() {
@@ -73,6 +74,7 @@ export default function AdminLocalChurchesPage() {
         contactPhone: pub.contactPhone ?? null,
         contactEmail: pub.contactEmail ?? null,
         websiteUrl: pub.websiteUrl ?? null,
+        monthlyCessAmount: pub.monthlyCessAmount ?? null,
       });
     } catch (e) {
       setError((e as Error).message);
@@ -203,6 +205,25 @@ export default function AdminLocalChurchesPage() {
               <Field label="External website" value={editing.websiteUrl ?? ""}
                 placeholder="https://…"
                 onChange={v => setEditing({ ...editing, websiteUrl: v || null })} />
+
+              <label className="block">
+                <span className="text-sm text-gray-600">Monthly cess obligation (KES)</span>
+                <input
+                  type="number"
+                  step="100"
+                  min="0"
+                  placeholder="e.g. 15000"
+                  value={editing.monthlyCessAmount ?? ""}
+                  onChange={e => setEditing({
+                    ...editing,
+                    monthlyCessAmount: e.target.value === "" ? null : Number(e.target.value),
+                  })}
+                  className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  How much this church remits to the diocese each month. Cess submissions colour-code green/red against this.
+                </p>
+              </label>
             </div>
 
             <div className="flex justify-end gap-3 mt-6">

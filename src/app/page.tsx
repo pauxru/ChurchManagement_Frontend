@@ -14,6 +14,7 @@ interface ClergyDto {
   clergyName: string;
   rank: number;
   rankLabel: string;
+  salutation: string;
   level: number;
   assignmentName: string | null;
   ordinationYear: number | null;
@@ -138,43 +139,57 @@ export default async function Home() {
             Gatundu Diocese.
           </p>
 
-          {/* Tier 1 — Presiding Archbishop */}
-          <div className="mt-12">
-            <p className="text-center text-xs uppercase tracking-widest text-yellow-700 font-semibold">
-              Presiding Archbishop · AIPCA National
-            </p>
-            <div className="mt-4 max-w-sm mx-auto">
-              <LeadershipCard
-                clergy={leadership.presidingArchbishop}
-                fallbackName="Presiding Archbishop (To be announced)"
-                fallbackAssignment="National Church"
-                titleLabel="Presiding Archbishop"
-                size="lg"
-                gradient="from-yellow-500 to-yellow-700"
-              />
-            </div>
-          </div>
+          {/* Tier 1 — Presiding Archbishop (also Archbishop of Nairobi if
+              the same person holds both seats — show once, label both). */}
+          {(() => {
+            const pres = leadership.presidingArchbishop;
+            const arch = leadership.archdioceseArchbishop;
+            const samePerson =
+              pres && arch && pres.clergyName.trim() === arch.clergyName.trim();
+            return (
+              <>
+                <div className="mt-12">
+                  <p className="text-center text-xs uppercase tracking-widest text-yellow-700 font-semibold">
+                    Presiding Archbishop · AIPCA National
+                  </p>
+                  <div className="mt-4 max-w-sm mx-auto">
+                    <LeadershipCard
+                      clergy={pres}
+                      fallbackName="To be announced"
+                      fallbackAssignment="National Church"
+                      titleLabel="Presiding Archbishop"
+                      secondaryTitle={samePerson ? "also Archbishop of Nairobi Archdiocese" : null}
+                      size="lg"
+                      gradient="from-yellow-500 to-yellow-700"
+                    />
+                  </div>
+                </div>
 
-          <div className="flex justify-center my-6">
-            <div className="w-0.5 h-10 bg-gradient-to-b from-yellow-600 to-red-700" />
-          </div>
-
-          {/* Tier 2 — Nairobi Archbishop */}
-          <div>
-            <p className="text-center text-xs uppercase tracking-widest text-red-700 font-semibold">
-              Archbishop · Nairobi Archdiocese
-            </p>
-            <div className="mt-4 max-w-sm mx-auto">
-              <LeadershipCard
-                clergy={leadership.archdioceseArchbishop}
-                fallbackName="Archbishop (To be announced)"
-                fallbackAssignment="Nairobi Archdiocese"
-                titleLabel="Archbishop"
-                size="md"
-                gradient="from-red-700 to-red-900"
-              />
-            </div>
-          </div>
+                {!samePerson && (
+                  <>
+                    <div className="flex justify-center my-6">
+                      <div className="w-0.5 h-10 bg-gradient-to-b from-yellow-600 to-red-700" />
+                    </div>
+                    <div>
+                      <p className="text-center text-xs uppercase tracking-widest text-red-700 font-semibold">
+                        Archbishop · Nairobi Archdiocese
+                      </p>
+                      <div className="mt-4 max-w-sm mx-auto">
+                        <LeadershipCard
+                          clergy={arch}
+                          fallbackName="To be announced"
+                          fallbackAssignment="Nairobi Archdiocese"
+                          titleLabel="Archbishop"
+                          size="md"
+                          gradient="from-red-700 to-red-900"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            );
+          })()}
 
           <div className="flex justify-center my-6">
             <div className="w-0.5 h-10 bg-gradient-to-b from-red-700 to-red-900" />
@@ -201,9 +216,6 @@ export default async function Home() {
             </div>
           </div>
 
-          <p className="mt-8 text-center text-xs text-gray-400">
-            Photos and details are configurable by the diocesan admin.
-          </p>
         </div>
       </section>
 
