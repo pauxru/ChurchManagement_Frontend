@@ -53,8 +53,14 @@ export default async function Home() {
 
       {/* Hero */}
       <header className="bg-gradient-to-b from-red-800 to-red-700 text-white">
-        <div className="container mx-auto px-6 py-20 text-center">
-          <p className="uppercase tracking-widest text-yellow-300 text-sm font-semibold">
+        <div className="container mx-auto px-6 py-16 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/aipca-logo.png"
+            alt="AIPCA"
+            className="mx-auto w-28 h-auto drop-shadow-lg"
+          />
+          <p className="mt-6 uppercase tracking-widest text-yellow-300 text-sm font-semibold">
             AIPCA · Nairobi Archdiocese
           </p>
           <h1 className="mt-3 text-4xl md:text-5xl font-extrabold">
