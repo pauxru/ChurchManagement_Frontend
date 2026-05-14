@@ -43,6 +43,14 @@ function startsWithAny(path: string, prefixes: string[]): boolean {
   return prefixes.some(p => path === p || path.startsWith(p + "/") || path.startsWith(p));
 }
 
+// Mirrors AppPolicy:RequireVerification on the backend. When false, the
+// middleware lets any signed-in user reach any route — no /signup/complete
+// gate. Backend handlers honour the same flag so 403s also disappear.
+// Default true (safe). Flip via NEXT_PUBLIC_REQUIRE_VERIFICATION=false in
+// .env.production (provision.ps1 wires this from REQUIRE_VERIFICATION in
+// .env.deploy).
+const REQUIRE_VERIFICATION = process.env.NEXT_PUBLIC_REQUIRE_VERIFICATION !== "false";
+
 export default auth(async (req) => {
   const { pathname } = req.nextUrl;
 
@@ -53,6 +61,11 @@ export default auth(async (req) => {
       return NextResponse.next();
     }
     return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  // Verification globally disabled — every signed-in user roams freely.
+  if (!REQUIRE_VERIFICATION) {
+    return NextResponse.next();
   }
 
   const roles = req.auth.user?.roles ?? [];
