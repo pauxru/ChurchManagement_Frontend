@@ -27,25 +27,19 @@ export default function LcLayout({ children }: { children: React.ReactNode }) {
   const token = session?.accessToken;
   const lcId = Number(params?.id);
   const [info, setInfo] = useState<AccessCheck | null>(null);
-  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     if (!token || !lcId) return;
+    // On 401/403 apiFetch redirects to /login or /forbidden respectively;
+    // we don't need a separate "denied" UI fighting for the screen. Any
+    // other error (network, 5xx) leaves info=null and the layout shows a
+    // generic loading message — better than a misleading "Access denied".
     apiFetch<AccessCheck>(`/Lc/${lcId}/access-check`, token)
       .then(setInfo)
-      .catch(() => setDenied(true));
+      .catch(() => { /* apiFetch handles redirects; swallow here */ });
   }, [lcId, token]);
 
-  if (denied) {
-    return (
-      <div className="container mx-auto px-6 py-10 max-w-2xl">
-        <h1 className="text-2xl font-bold mb-2">Access denied</h1>
-        <p className="text-gray-600">You don&apos;t have permission to view this local church.</p>
-        <Link href="/" className="text-blue-700 underline">Back home</Link>
-      </div>
-    );
-  }
-  if (!info) return <div className="p-6">Loading...</div>;
+  if (!info) return <div className="p-6">Loading…</div>;
 
   const base = `/lc/${lcId}`;
 
