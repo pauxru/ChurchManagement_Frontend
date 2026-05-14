@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { clergyDisplayName } from "@/lib/clergyDisplay";
+import { clergyDisplayName, rankGradient } from "@/lib/clergyDisplay";
 
 export interface VestryMember {
   clergyId: number;
@@ -17,35 +17,32 @@ function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-const RANK_COLOR: Record<string, string> = {
-  ArchDeacon:   "from-purple-700 to-purple-900",
-  Pastor:       "from-red-700 to-red-900",
-  Deacon:       "from-blue-700 to-blue-900",
-  ChurchLeader: "from-emerald-700 to-emerald-900",
-};
-
 export function VestryCard({ member }: { member: VestryMember }) {
-  const gradient = RANK_COLOR[member.rankLabel] ?? "from-gray-700 to-gray-900";
+  const gradient = rankGradient(member.rankLabel);
+  // clergyDisplayName already prefixes the salutation ("Rev. John Mwangi");
+  // surfacing the same salutation in a separate uppercase chip above the
+  // name caused the duplicate "REV" rendering reported by ops, so we drop it.
   const display = clergyDisplayName(member.clergyName, member.rankLabel, member.salutation);
 
   return (
     <Link
       href={`/clergy/${member.clergyId}`}
-      className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md hover:border-red-300 transition"
+      className="block bg-white border border-gray-200 rounded-lg px-3 pt-5 pb-3 hover:shadow-md hover:border-red-300 transition"
     >
-      <div className={`aspect-square bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>
-        {member.photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={member.photoUrl} alt={display} className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-white text-5xl font-bold opacity-90">{initials(member.clergyName)}</span>
-        )}
+      <div className="flex justify-center">
+        <div
+          className={`w-24 h-24 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden shadow ring-4 ring-white`}
+        >
+          {member.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={member.photoUrl} alt={display} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-white text-3xl font-bold opacity-95">{initials(member.clergyName)}</span>
+          )}
+        </div>
       </div>
-      <div className="p-3 text-center">
-        <p className="text-xs text-red-700 font-medium uppercase tracking-wide">
-          {member.salutation || member.rankLabel}
-        </p>
-        <h4 className="mt-1 font-semibold text-sm text-gray-900">{display}</h4>
+      <div className="mt-3 text-center">
+        <h4 className="font-semibold text-sm text-gray-900">{display}</h4>
         {member.assignmentName && (
           <p className="text-xs text-gray-500 mt-1 truncate">{member.assignmentName}</p>
         )}

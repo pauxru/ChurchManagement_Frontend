@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { rankChip, rankGradient } from "@/lib/clergyColors";
 
 export interface ClergyDto {
   clergyId: number;
@@ -133,43 +134,47 @@ export function ClergyView({ clergy }: Props) {
         <p className="mt-10 text-gray-500">No clergy match those filters.</p>
       ) : (
         <div className="mt-8 space-y-10">
-          {grouped.map(([rankKey, members]) => (
-            <section key={rankKey}>
-              <h2 className="text-xl font-bold text-red-900 border-b border-red-200 pb-1 mb-4">
-                {RANK_PRETTY[rankKey] ?? rankKey}
-                <span className="text-gray-400 font-normal text-sm ml-2">· {members.length}</span>
-              </h2>
-              <ul className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {members.map((c) => (
-                  <li key={c.clergyId}>
-                    <Link
-                      href={`/clergy/${c.clergyId}`}
-                      className="block border border-gray-200 rounded-lg p-5 text-center hover:shadow-md hover:border-red-300 transition"
-                    >
-                      {c.photoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={c.photoUrl}
-                          alt={c.clergyName}
-                          className="mx-auto w-20 h-20 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="mx-auto w-20 h-20 rounded-full bg-red-100 text-red-800 flex items-center justify-center font-bold text-xl">
-                          {initials(c.clergyName)}
-                        </div>
-                      )}
-                      <h3 className="mt-3 font-semibold">
-                        {c.salutation ? `${c.salutation}. ` : ""}{c.clergyName}
-                      </h3>
-                      {c.assignmentName && (
-                        <p className="mt-1 text-sm text-gray-600">{c.assignmentName}</p>
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+          {grouped.map(([rankKey, members]) => {
+            const tint = rankChip(rankKey);
+            const grad = rankGradient(rankKey);
+            return (
+              <section key={rankKey}>
+                <h2 className={`text-xl font-bold rounded-md px-3 py-1.5 mb-4 inline-flex items-baseline gap-2 ${tint}`}>
+                  {RANK_PRETTY[rankKey] ?? rankKey}
+                  <span className="font-normal text-sm opacity-70">· {members.length}</span>
+                </h2>
+                <ul className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {members.map((c) => (
+                    <li key={c.clergyId}>
+                      <Link
+                        href={`/clergy/${c.clergyId}`}
+                        className="block border border-gray-200 rounded-lg p-5 text-center hover:shadow-md hover:border-red-300 transition bg-white"
+                      >
+                        {c.photoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={c.photoUrl}
+                            alt={c.clergyName}
+                            className="mx-auto w-20 h-20 rounded-full object-cover ring-4 ring-white shadow"
+                          />
+                        ) : (
+                          <div className={`mx-auto w-20 h-20 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center font-bold text-xl ring-4 ring-white shadow`}>
+                            {initials(c.clergyName)}
+                          </div>
+                        )}
+                        <h3 className="mt-3 font-semibold">
+                          {c.salutation ? `${c.salutation}. ` : ""}{c.clergyName}
+                        </h3>
+                        {c.assignmentName && (
+                          <p className="mt-1 text-sm text-gray-600">{c.assignmentName}</p>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
         </div>
       )}
     </>

@@ -1,4 +1,4 @@
-import { clergyDisplayName } from "@/lib/clergyDisplay";
+import { clergyDisplayName, rankGradient } from "@/lib/clergyDisplay";
 
 interface ClergyDto {
   clergyId: number;
@@ -18,7 +18,10 @@ interface Props {
   // Nairobi" when the same person holds two seats.
   secondaryTitle?: string | null;
   size: "sm" | "md" | "lg";
-  gradient: string;
+  // Optional override. When omitted, the gradient is picked from the clergy's
+  // rank via rankGradient(). Kept for back-compat with call sites that pass a
+  // hard-coded gradient string.
+  gradient?: string;
 }
 
 function clergyInitials(name: string): string {
@@ -29,10 +32,12 @@ function clergyInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+// The circle sits inside the card; sizes pick a diameter that scales with the
+// surrounding card density. The card itself is white with breathing room.
 const SIZE_TOKENS = {
-  lg: { aspect: "aspect-square", initials: "text-7xl", title: "text-xl", name: "text-2xl" },
-  md: { aspect: "aspect-square", initials: "text-6xl", title: "text-base", name: "text-xl" },
-  sm: { aspect: "aspect-[4/3]", initials: "text-5xl", title: "text-sm", name: "text-lg" },
+  lg: { circle: "w-40 h-40", initials: "text-5xl", title: "text-xl", name: "text-2xl" },
+  md: { circle: "w-32 h-32", initials: "text-4xl", title: "text-base", name: "text-xl" },
+  sm: { circle: "w-24 h-24", initials: "text-3xl", title: "text-sm", name: "text-lg" },
 };
 
 export function LeadershipCard({
@@ -51,20 +56,25 @@ export function LeadershipCard({
     : rawName;
   const assignment = clergy?.assignmentName ?? fallbackAssignment ?? null;
   const photo = clergy?.photoUrl ?? null;
+  const grad = gradient ?? rankGradient(clergy?.rankLabel);
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-      <div className={`${tokens.aspect} bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>
-        {photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt={display} className="w-full h-full object-cover" />
-        ) : (
-          <span className={`text-white ${tokens.initials} font-bold opacity-90`}>
-            {clergyInitials(rawName)}
-          </span>
-        )}
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 px-4 pt-6 pb-4">
+      <div className="flex justify-center">
+        <div
+          className={`${tokens.circle} rounded-full bg-gradient-to-br ${grad} flex items-center justify-center overflow-hidden shadow-md ring-4 ring-white`}
+        >
+          {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photo} alt={display} className="w-full h-full object-cover" />
+          ) : (
+            <span className={`text-white ${tokens.initials} font-bold opacity-95`}>
+              {clergyInitials(rawName)}
+            </span>
+          )}
+        </div>
       </div>
-      <div className="p-4 text-center">
+      <div className="mt-4 text-center">
         <p className={`text-red-700 font-medium ${tokens.title}`}>{titleLabel}</p>
         <h3 className={`mt-1 font-bold text-gray-900 ${tokens.name}`}>{display}</h3>
         {assignment && <p className="text-sm text-gray-600 mt-1">{assignment}</p>}

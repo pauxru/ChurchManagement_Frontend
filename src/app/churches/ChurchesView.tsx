@@ -12,6 +12,7 @@ export interface LocalChurchDto {
   address: string | null;
   inChargePastorName: string | null;
   status: string;
+  deaconNames?: string[] | null;
 }
 
 interface Props {
@@ -147,9 +148,23 @@ export function ChurchesView({ churches }: Props) {
                                   <span className="font-medium">{c.inChargePastorName}</span>
                                 </p>
                               )}
-                              <span className="mt-3 inline-block text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                {c.status}
-                              </span>
+                              {/* Replaces the old green "Active" badge with the deacon /
+                                  church-leader names at this LC — a more useful local signal. */}
+                              {(() => {
+                                const deacons = c.deaconNames ?? [];
+                                if (deacons.length === 0) {
+                                  return (
+                                    <p className="mt-2 text-xs text-gray-400 italic">No deacon yet</p>
+                                  );
+                                }
+                                const label = deacons.length === 1 ? "Deacon" : "Deacons";
+                                return (
+                                  <p className="mt-2 text-xs text-gray-700">
+                                    <span className="font-semibold text-gray-900">{label}:</span>{" "}
+                                    {deacons.join(", ")}
+                                  </p>
+                                );
+                              })()}
                             </Link>
                           </li>
                         ))}

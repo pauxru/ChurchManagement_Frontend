@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/apiClient";
 
 interface ChurchRow {
@@ -35,12 +36,25 @@ interface ChurchFull {
 }
 
 export default function AdminLocalChurchesPage() {
+  // Suspense boundary required because the inner component calls
+  // useSearchParams() — Next 15 fails the build during prerender otherwise.
+  return (
+    <Suspense fallback={<div className="p-8 text-gray-500">Loading…</div>}>
+      <AdminLocalChurchesInner />
+    </Suspense>
+  );
+}
+
+function AdminLocalChurchesInner() {
   const { data: session, status } = useSession();
   const token = session?.accessToken;
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<ChurchRow[] | null>(null);
   const [editing, setEditing] = useState<ChurchFull | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [focusHandled, setFocusHandled] = useState(false);
 
   useEffect(() => {
     const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
@@ -50,7 +64,7 @@ export default function AdminLocalChurchesPage() {
       .catch(() => setRows([]));
   }, []);
 
-  async function openEditor(id: number) {
+  const openEditor = useCallback(async (id: number) => {
     setError(null);
     try {
       const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
@@ -79,7 +93,21 @@ export default function AdminLocalChurchesPage() {
     } catch (e) {
       setError((e as Error).message);
     }
-  }
+  }, []);
+
+  // Auto-open the editor modal when arriving here from /lc/[id]'s pen icon
+  // (which links to /admin/local-churches?focus=<id>). We drop the param
+  // afterwards so back-navigation doesn't re-trigger.
+  useEffect(() => {
+    if (focusHandled) return;
+    const focus = searchParams?.get("focus");
+    if (!focus) return;
+    const id = Number(focus);
+    if (!Number.isFinite(id) || id <= 0) return;
+    setFocusHandled(true);
+    openEditor(id);
+    router.replace("/admin/local-churches");
+  }, [searchParams, openEditor, router, focusHandled]);
 
   async function save() {
     if (!editing) return;

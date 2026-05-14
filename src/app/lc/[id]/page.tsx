@@ -37,8 +37,7 @@ const MANAGE_TILES = [
   { slug: "communication",        label: "Communication",    desc: "Posts to members + officials" },
   { slug: "groups",               label: "Groups",           desc: "Committees and ministries" },
   { slug: "fellowships",          label: "Fellowships",      desc: "Prayer cells, study groups" },
-  { slug: "minutes",              label: "Meeting Minutes",  desc: "Signed minutes archive" },
-  { slug: "shared-with-bishop",   label: "Bishop View",      desc: "Transparency dashboard" },
+  { slug: "minutes",              label: "Meetings",         desc: "Meeting minutes and notes" },
 ];
 
 function placeholderInitials(name: string): string {

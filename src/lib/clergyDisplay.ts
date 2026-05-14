@@ -3,6 +3,10 @@
 // without that field (admin edit forms working from raw Clergy rows, etc.)
 // stay consistent.
 
+// Re-export the rank colour helpers so callers can pull display + colours
+// from a single module.
+export { rankGradient, rankChip } from "./clergyColors";
+
 export const SALUTATION_BY_RANK: Record<string, string> = {
   PresidingArchbishop: "His Eminence",
   ArchBishop: "His Grace",

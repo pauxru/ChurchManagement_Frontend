@@ -1,8 +1,8 @@
 "use client";
 
-// LC Finances — ledger view. Every FinanceRecord is either an Inflow or an
-// Outflow; the table shows them in two columns and computes a running balance
-// for the selected month in the footer.
+// LC Finances. Every FinanceRecord is either an Inflow or an Outflow; the
+// table shows them in two columns and computes a running balance for the
+// selected month in the footer.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
@@ -143,20 +143,11 @@ export default function FinancesPage() {
     <div className="container mx-auto px-6 py-6">
       <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Finance ledger</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">Finances</h2>
           <p className="text-sm text-gray-500 mt-1">
             Track inflows and outflows. The running balance below is calculated for the selected month.
           </p>
         </div>
-        <button
-          onClick={() => {
-            setForm(initialForm());
-            setShowModal(true);
-          }}
-          className="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-md shadow-sm text-sm font-medium"
-        >
-          + Add transaction
-        </button>
       </div>
 
       {error && (
@@ -237,6 +228,33 @@ export default function FinancesPage() {
             )}
           </tbody>
           <tfoot>
+            {/* Two per-column add buttons. Each pre-fills the modal's
+                direction so users don't have to pick it themselves. */}
+            <tr className="border-t border-gray-100">
+              <td colSpan={3}></td>
+              <td className="px-4 py-2 text-right">
+                <button
+                  onClick={() => {
+                    setForm({ ...initialForm(), direction: DIRECTION_INFLOW, category: 2 });
+                    setShowModal(true);
+                  }}
+                  className="text-xs font-medium text-emerald-700 hover:text-emerald-800 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-md transition"
+                >
+                  + Add inflow
+                </button>
+              </td>
+              <td className="px-4 py-2 text-right">
+                <button
+                  onClick={() => {
+                    setForm({ ...initialForm(), direction: DIRECTION_OUTFLOW, category: 5 });
+                    setShowModal(true);
+                  }}
+                  className="text-xs font-medium text-rose-700 hover:text-rose-800 border border-rose-200 hover:border-rose-400 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-md transition"
+                >
+                  + Add outflow
+                </button>
+              </td>
+            </tr>
             <tr className="bg-gray-50 border-t-2 border-gray-200">
               <td colSpan={3} className="px-4 py-3 text-right text-xs uppercase tracking-wide font-semibold text-gray-600">
                 Totals for {MONTH_NAMES[month - 1]} {year}
@@ -275,7 +293,9 @@ export default function FinancesPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b">
-              <h3 className="text-lg font-semibold">Add transaction</h3>
+              <h3 className="text-lg font-semibold">
+                {form.direction === DIRECTION_OUTFLOW ? "Add outflow" : "Add inflow"}
+              </h3>
               <p className="text-xs text-gray-500 mt-1">Record an inflow (income) or outflow (expense).</p>
             </div>
             <div className="p-6 space-y-4">
