@@ -72,8 +72,26 @@ export default function AdminDashboard() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-2">Quick links</h2>
+            <h2 className="text-xl font-semibold mb-2">Manage content</h2>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <li>
+                <Link href="/admin/clergy" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
+                  <div className="font-semibold">Clergy</div>
+                  <div className="text-sm text-gray-600">Edit names, photos, ordination details. Photo URLs reference files in the frontend public/bishops folder.</div>
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin/parishes" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
+                  <div className="font-semibold">Parishes</div>
+                  <div className="text-sm text-gray-600">Rename parishes and edit their descriptions.</div>
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin/officials" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
+                  <div className="font-semibold">Officials</div>
+                  <div className="text-sm text-gray-600">Verify, reject or reassign Local Church Officials.</div>
+                </Link>
+              </li>
               <li>
                 <Link href="/admin/link-requests" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
                   <div className="font-semibold">Link requests</div>
@@ -83,7 +101,7 @@ export default function AdminDashboard() {
               <li>
                 <Link href="/admin/import" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
                   <div className="font-semibold">Bulk import</div>
-                  <div className="text-sm text-gray-600">Upload CSV files to load hierarchy or member data.</div>
+                  <div className="text-sm text-gray-600">Upload CSVs to load hierarchy or member data.</div>
                 </Link>
               </li>
             </ul>
