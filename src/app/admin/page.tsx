@@ -89,6 +89,12 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-semibold mb-2">Manage content</h2>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <li>
+                <Link href="/admin/local-churches" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
+                  <div className="font-semibold">Local Churches</div>
+                  <div className="text-sm text-gray-600">Edit each church&apos;s logo, banner, service times, contact info, description. Powers the public LC page.</div>
+                </Link>
+              </li>
+              <li>
                 <Link href="/admin/clergy" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
                   <div className="font-semibold">Clergy</div>
                   <div className="text-sm text-gray-600">Edit names, photos, ordination details. Photo URLs reference files in the frontend public/bishops folder.</div>
