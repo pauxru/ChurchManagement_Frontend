@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { VerseOfTheDay } from "@/components/VerseOfTheDay";
+import { LeadershipCard } from "@/components/LeadershipCard";
 
 export const revalidate = 300;
 
@@ -13,25 +14,29 @@ interface ClergyDto {
   ordinationYear: number | null;
 }
 
-async function loadBishops(): Promise<ClergyDto[]> {
+interface Leadership {
+  presidingArchbishop: ClergyDto | null;
+  archdioceseArchbishop: ClergyDto | null;
+  gatunduBishops: ClergyDto[];
+}
+
+async function loadLeadership(): Promise<Leadership> {
+  const empty: Leadership = { presidingArchbishop: null, archdioceseArchbishop: null, gatunduBishops: [] };
   const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
   try {
     const res = await fetch(`${base}/public/clergy`, { next: { revalidate: 300 } });
-    if (!res.ok) return [];
+    if (!res.ok) return empty;
     const all = (await res.json()) as ClergyDto[];
-    return all.filter((c) => c.rankLabel === "Bishop");
+    return {
+      presidingArchbishop: all.find((c) => c.rankLabel === "PresidingArchbishop") ?? null,
+      archdioceseArchbishop: all.find((c) => c.rankLabel === "ArchBishop") ?? null,
+      gatunduBishops: all.filter((c) => c.rankLabel === "Bishop"),
+    };
   } catch {
-    return [];
+    return empty;
   }
 }
 
-function bishopInitials(name: string): string {
-  const cleaned = name.replace(/^Bishop\s+/i, "").replace(/\([^)]*\)/g, "").trim();
-  const parts = cleaned.split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "B";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "B";
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 const THEME_OF_THE_YEAR = {
   year: new Date().getFullYear(),
@@ -40,7 +45,7 @@ const THEME_OF_THE_YEAR = {
 };
 
 export default async function Home() {
-  const bishops = await loadBishops();
+  const leadership = await loadLeadership();
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <Navbar />
@@ -109,35 +114,81 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Bishops */}
+      {/* Leadership hierarchy */}
       <section id="bishops" className="py-16 bg-white">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center text-red-800">Our Bishops</h2>
+          <h2 className="text-3xl font-bold text-center text-red-800">Our Leadership</h2>
           <p className="mt-3 text-center text-gray-600 max-w-2xl mx-auto">
-            Gatundu Diocese is shepherded by our Bishops, who lead worship,
-            ordain clergy, and represent the diocese in the Nairobi Archdiocese.
+            From the national leadership of AIPCA down to the Bishops who shepherd
+            Gatundu Diocese.
           </p>
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {(bishops.length > 0 ? bishops : [
-              { clergyId: -1, clergyName: "Bishop (To be announced)", assignmentName: "Gatundu Diocese" },
-              { clergyId: -2, clergyName: "Bishop (To be announced)", assignmentName: "Gatundu Diocese" },
-            ]).map((b) => (
-              <div key={b.clergyId} className="bg-gray-50 rounded-lg shadow-sm overflow-hidden border border-gray-200">
-                <div className="aspect-[4/3] bg-gradient-to-br from-red-700 to-red-900 flex items-center justify-center">
-                  <span className="text-white text-6xl font-bold opacity-80">
-                    {bishopInitials(b.clergyName)}
-                  </span>
-                </div>
-                <div className="p-5">
-                  <h3 className="font-bold text-lg text-gray-900">{b.clergyName}</h3>
-                  <p className="text-sm text-red-700 font-medium mt-1">Bishop</p>
-                  {b.assignmentName && (
-                    <p className="text-sm text-gray-600 mt-0.5">{b.assignmentName}</p>
-                  )}
-                </div>
-              </div>
-            ))}
+
+          {/* Tier 1 — Presiding Archbishop */}
+          <div className="mt-12">
+            <p className="text-center text-xs uppercase tracking-widest text-yellow-700 font-semibold">
+              Presiding Archbishop · AIPCA National
+            </p>
+            <div className="mt-4 max-w-sm mx-auto">
+              <LeadershipCard
+                clergy={leadership.presidingArchbishop}
+                fallbackName="Presiding Archbishop (To be announced)"
+                fallbackAssignment="National Church"
+                titleLabel="Presiding Archbishop"
+                size="lg"
+                gradient="from-yellow-500 to-yellow-700"
+              />
+            </div>
           </div>
+
+          <div className="flex justify-center my-6">
+            <div className="w-0.5 h-10 bg-gradient-to-b from-yellow-600 to-red-700" />
+          </div>
+
+          {/* Tier 2 — Nairobi Archbishop */}
+          <div>
+            <p className="text-center text-xs uppercase tracking-widest text-red-700 font-semibold">
+              Archbishop · Nairobi Archdiocese
+            </p>
+            <div className="mt-4 max-w-sm mx-auto">
+              <LeadershipCard
+                clergy={leadership.archdioceseArchbishop}
+                fallbackName="Archbishop (To be announced)"
+                fallbackAssignment="Nairobi Archdiocese"
+                titleLabel="Archbishop"
+                size="md"
+                gradient="from-red-700 to-red-900"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-center my-6">
+            <div className="w-0.5 h-10 bg-gradient-to-b from-red-700 to-red-900" />
+          </div>
+
+          {/* Tier 3 — Gatundu Bishops */}
+          <div>
+            <p className="text-center text-xs uppercase tracking-widest text-red-900 font-semibold">
+              Bishops · Gatundu Diocese
+            </p>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              {(leadership.gatunduBishops.length > 0 ? leadership.gatunduBishops : [
+                { clergyId: -1, clergyName: "Bishop (To be announced)", assignmentName: "Gatundu Diocese" } as ClergyDto,
+                { clergyId: -2, clergyName: "Bishop (To be announced)", assignmentName: "Gatundu Diocese" } as ClergyDto,
+              ]).map((b) => (
+                <LeadershipCard
+                  key={b.clergyId}
+                  clergy={b}
+                  titleLabel="Bishop"
+                  size="sm"
+                  gradient="from-red-800 to-red-950"
+                />
+              ))}
+            </div>
+          </div>
+
+          <p className="mt-8 text-center text-xs text-gray-400">
+            Photos and details are configurable by the diocesan admin.
+          </p>
         </div>
       </section>
 
