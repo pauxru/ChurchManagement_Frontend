@@ -9,16 +9,22 @@ import { Navbar } from "@/components/Navbar";
 
 interface AccessCheck { lcId: number; name: string; code: string | null; }
 
+// "Shared with Bishop" is replaced by "Members" + "Leadership" (operator
+// feedback May 2026 — bishops already see this LC via the dedicated /bishop
+// view, no need to duplicate it inside the LC workspace).
+// "Minutes" is re-labelled "Meetings"; the route stays at /minutes for now
+// since the existing SAS upload flow is unchanged this batch.
 const TABS = [
   { slug: "", label: "Overview" },
-  { slug: "plans", label: "Plans" },
+  { slug: "members", label: "Members" },
+  { slug: "leadership", label: "Leadership" },
+  { slug: "plans", label: "Projects" },
   { slug: "cess", label: "Cess" },
   { slug: "finances", label: "Finances" },
   { slug: "communication", label: "Communication" },
   { slug: "groups", label: "Groups" },
   { slug: "fellowships", label: "Fellowships" },
-  { slug: "minutes", label: "Minutes" },
-  { slug: "shared-with-bishop", label: "Shared with Bishop" },
+  { slug: "minutes", label: "Meetings" },
 ];
 
 export default function LcLayout({ children }: { children: React.ReactNode }) {
