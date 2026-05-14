@@ -82,6 +82,7 @@ export default function SignupCompletePage() {
   const [position, setPosition] = useState<number>(2);
   const [positionDetail, setPositionDetail] = useState("");
   const [nationalId, setNationalId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState(1);
   const [displayName, setDisplayName] = useState("");
 
@@ -131,11 +132,22 @@ export default function SignupCompletePage() {
     if (!token) return;
     if (!nationalId.trim()) { setError("National ID is required."); return; }
     if (position === 7 && !positionDetail.trim()) { setError("Please describe your position."); return; }
+    if (!phoneMasked && !phoneNumber.trim()) {
+      setError("Phone number is required (Microsoft didn't share one with us, so we need yours here).");
+      return;
+    }
     setError(null);
     try {
       const r = await apiFetch<ProfileResult>("/Signup/profile", token, {
         method: "POST",
-        json: { position, positionDetail: positionDetail || undefined, nationalId, preferredLanguage, displayName: displayName || undefined },
+        json: {
+          position,
+          positionDetail: positionDetail || undefined,
+          nationalId,
+          phoneNumber: phoneNumber || undefined,
+          preferredLanguage,
+          displayName: displayName || undefined,
+        },
       });
       applyStatus(r.status, null);
     } catch (e) {
@@ -241,6 +253,22 @@ export default function SignupCompletePage() {
                 We use this only to confirm your identity. It&apos;s stored as a hash, never as plain text.
               </p>
             </div>
+            {!phoneMasked && (
+              <div>
+                <label className="block text-sm font-medium mb-1">Mobile phone</label>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+254 7XX XXX XXX"
+                  className="w-full border px-3 py-2 rounded"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  The number your local church has on file for you. We&apos;ll use it to match
+                  you against the church roster and to send you a verification code later.
+                </p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium mb-1">Preferred language</label>
               <select
