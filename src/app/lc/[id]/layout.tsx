@@ -12,8 +12,10 @@ interface AccessCheck { lcId: number; name: string; code: string | null; }
 // "Shared with Bishop" is replaced by "Members" + "Leadership" (operator
 // feedback May 2026 — bishops already see this LC via the dedicated /bishop
 // view, no need to duplicate it inside the LC workspace).
-// "Minutes" is re-labelled "Meetings"; the route stays at /minutes for now
-// since the existing SAS upload flow is unchanged this batch.
+// "Minutes" is now "Meetings" — the new workspace lives at /meetings and is
+// built around Meetings (title + agenda + chair + date) with attached
+// rich-text notes and file uploads. The legacy /minutes route is left in
+// place but is no longer linked from the tab strip.
 const TABS = [
   { slug: "", label: "Overview" },
   { slug: "members", label: "Members" },
@@ -24,7 +26,7 @@ const TABS = [
   { slug: "communication", label: "Communication" },
   { slug: "groups", label: "Groups" },
   { slug: "fellowships", label: "Fellowships" },
-  { slug: "minutes", label: "Meetings" },
+  { slug: "meetings", label: "Meetings" },
 ];
 
 export default function LcLayout({ children }: { children: React.ReactNode }) {
