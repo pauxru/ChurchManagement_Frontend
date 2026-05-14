@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { VestryCard, type VestryMember } from "@/components/VestryCard";
 
 interface LcDetail {
   localChurchId: number;
@@ -49,6 +50,7 @@ export default function LcOverviewPage() {
   const lcId = Number(params?.id);
   const { data: session } = useSession();
   const [lc, setLc] = useState<LcDetail | null>(null);
+  const [vestry, setVestry] = useState<VestryMember[]>([]);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -60,6 +62,10 @@ export default function LcOverviewPage() {
         return r.ok ? r.json() : null;
       })
       .then((d: LcDetail | null) => { if (d) setLc(d); });
+    fetch(`${base}/public/local-churches/${lcId}/vestry`)
+      .then(r => (r.ok ? r.json() : []))
+      .then((v: VestryMember[]) => setVestry(v))
+      .catch(() => setVestry([]));
   }, [lcId]);
 
   if (notFound) {
@@ -170,6 +176,26 @@ export default function LcOverviewPage() {
             </div>
           </div>
         </section>
+
+        {/* Vestry — Archdeacons, Pastors, Deacons, Church Leaders. Clicks
+            into /clergy/[id]. Hidden when the LC has no clergy yet. */}
+        {vestry.length > 0 && (
+          <section>
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="text-2xl font-bold text-red-900">Vestry</h2>
+              <p className="text-sm text-gray-500">
+                Parish clergy serving this Local Church · {vestry.length}
+              </p>
+            </div>
+            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {vestry.map((m) => (
+                <li key={m.clergyId}>
+                  <VestryCard member={m} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* Contact + Worship cards */}
         <section className="grid md:grid-cols-2 gap-6">

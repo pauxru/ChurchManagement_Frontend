@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 export interface ClergyDto {
@@ -140,28 +141,30 @@ export function ClergyView({ clergy }: Props) {
               </h2>
               <ul className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {members.map((c) => (
-                  <li
-                    key={c.clergyId}
-                    className="border border-gray-200 rounded-lg p-5 text-center hover:shadow-md transition"
-                  >
-                    {c.photoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={c.photoUrl}
-                        alt={c.clergyName}
-                        className="mx-auto w-20 h-20 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="mx-auto w-20 h-20 rounded-full bg-red-100 text-red-800 flex items-center justify-center font-bold text-xl">
-                        {initials(c.clergyName)}
-                      </div>
-                    )}
-                    <h3 className="mt-3 font-semibold">
-                      {c.salutation ? `${c.salutation}. ` : ""}{c.clergyName}
-                    </h3>
-                    {c.assignmentName && (
-                      <p className="mt-1 text-sm text-gray-600">{c.assignmentName}</p>
-                    )}
+                  <li key={c.clergyId}>
+                    <Link
+                      href={`/clergy/${c.clergyId}`}
+                      className="block border border-gray-200 rounded-lg p-5 text-center hover:shadow-md hover:border-red-300 transition"
+                    >
+                      {c.photoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={c.photoUrl}
+                          alt={c.clergyName}
+                          className="mx-auto w-20 h-20 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="mx-auto w-20 h-20 rounded-full bg-red-100 text-red-800 flex items-center justify-center font-bold text-xl">
+                          {initials(c.clergyName)}
+                        </div>
+                      )}
+                      <h3 className="mt-3 font-semibold">
+                        {c.salutation ? `${c.salutation}. ` : ""}{c.clergyName}
+                      </h3>
+                      {c.assignmentName && (
+                        <p className="mt-1 text-sm text-gray-600">{c.assignmentName}</p>
+                      )}
+                    </Link>
                   </li>
                 ))}
               </ul>
