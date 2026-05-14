@@ -1,7 +1,8 @@
 import { Navbar } from "@/components/Navbar";
+import { serverApiUrl } from "@/lib/serverFetch";
 
 export const metadata = { title: "AIPCA Church Near Me" };
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
 
 interface LocalChurchDto {
   localChurchId: number;
@@ -15,12 +16,12 @@ interface LocalChurchDto {
 }
 
 async function loadChurches(): Promise<LocalChurchDto[]> {
-  const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
   try {
-    const res = await fetch(`${base}/public/local-churches`, { next: { revalidate: 120 } });
+    const res = await fetch(serverApiUrl("/public/local-churches"), { cache: "no-store" });
     if (!res.ok) return [];
     return (await res.json()) as LocalChurchDto[];
-  } catch {
+  } catch (e) {
+    console.error("[loadChurches near-me] fetch failed:", e);
     return [];
   }
 }

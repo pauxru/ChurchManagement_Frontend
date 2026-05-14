@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { VerseOfTheDay } from "@/components/VerseOfTheDay";
 import { LeadershipCard } from "@/components/LeadershipCard";
+import { serverApiUrl } from "@/lib/serverFetch";
 
 // Home page server-renders every request so admin edits to bishops /
 // clergy / theme / etc. show up immediately instead of waiting for the
@@ -27,17 +28,20 @@ interface Leadership {
 
 async function loadLeadership(): Promise<Leadership> {
   const empty: Leadership = { presidingArchbishop: null, archdioceseArchbishop: null, gatunduBishops: [] };
-  const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
   try {
-    const res = await fetch(`${base}/public/clergy`, { cache: "no-store" });
-    if (!res.ok) return empty;
+    const res = await fetch(serverApiUrl("/public/clergy"), { cache: "no-store" });
+    if (!res.ok) {
+      console.error("[loadLeadership] /public/clergy returned", res.status);
+      return empty;
+    }
     const all = (await res.json()) as ClergyDto[];
     return {
       presidingArchbishop: all.find((c) => c.rankLabel === "PresidingArchbishop") ?? null,
       archdioceseArchbishop: all.find((c) => c.rankLabel === "ArchBishop") ?? null,
       gatunduBishops: all.filter((c) => c.rankLabel === "Bishop"),
     };
-  } catch {
+  } catch (e) {
+    console.error("[loadLeadership] fetch failed:", e);
     return empty;
   }
 }

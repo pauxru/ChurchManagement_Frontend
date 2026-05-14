@@ -1,7 +1,8 @@
 import { Navbar } from "@/components/Navbar";
+import { serverApiUrl } from "@/lib/serverFetch";
 
 export const metadata = { title: "Events" };
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
 
 interface EventDto {
   eventId: number;
@@ -17,12 +18,12 @@ interface EventDto {
 }
 
 async function loadEvents(): Promise<EventDto[]> {
-  const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
   try {
-    const res = await fetch(`${base}/public/events`, { next: { revalidate: 120 } });
+    const res = await fetch(serverApiUrl("/public/events"), { cache: "no-store" });
     if (!res.ok) return [];
     return (await res.json()) as EventDto[];
-  } catch {
+  } catch (e) {
+    console.error("[loadEvents] fetch failed:", e);
     return [];
   }
 }

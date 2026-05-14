@@ -1,7 +1,8 @@
 import { Navbar } from "@/components/Navbar";
+import { serverApiUrl } from "@/lib/serverFetch";
 
 export const metadata = { title: "Announcements" };
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
 
 interface AnnouncementDto {
   announcementId: number;
@@ -13,12 +14,12 @@ interface AnnouncementDto {
 }
 
 async function loadAnnouncements(): Promise<AnnouncementDto[]> {
-  const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
   try {
-    const res = await fetch(`${base}/public/announcements`, { next: { revalidate: 120 } });
+    const res = await fetch(serverApiUrl("/public/announcements"), { cache: "no-store" });
     if (!res.ok) return [];
     return (await res.json()) as AnnouncementDto[];
-  } catch {
+  } catch (e) {
+    console.error("[loadAnnouncements] fetch failed:", e);
     return [];
   }
 }

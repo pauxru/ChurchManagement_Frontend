@@ -1,16 +1,17 @@
 import { Navbar } from "@/components/Navbar";
 import { ClergyView, type ClergyDto } from "./ClergyView";
+import { serverApiUrl } from "@/lib/serverFetch";
 
 export const metadata = { title: "Clergy" };
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
 
 async function loadClergy(): Promise<ClergyDto[]> {
-  const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
   try {
-    const res = await fetch(`${base}/public/clergy`, { next: { revalidate: 120 } });
+    const res = await fetch(serverApiUrl("/public/clergy"), { cache: "no-store" });
     if (!res.ok) return [];
     return (await res.json()) as ClergyDto[];
-  } catch {
+  } catch (e) {
+    console.error("[loadClergy] fetch failed:", e);
     return [];
   }
 }
