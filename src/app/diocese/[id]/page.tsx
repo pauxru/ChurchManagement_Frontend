@@ -45,17 +45,23 @@ export default function DioceseOverviewPage() {
 
   return (
     <div className="container mx-auto px-6 py-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">{view.dioceseName} — Bishop overview</h1>
-        <div className="text-sm text-gray-600 mt-1">
-          Bishops:{" "}
-          {view.bishops.map((b) => (
-            <span key={b.clergyID} className="inline-block mr-3">
-              {b.clergyName}
-              {b.isInCharge && <span className="ml-1 text-xs bg-blue-200 text-blue-900 px-1 rounded">In-Charge</span>}
-            </span>
-          ))}
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{view.dioceseName} — Bishop overview</h1>
+          <div className="text-sm text-gray-600 mt-1">
+            Bishops:{" "}
+            {view.bishops.map((b) => (
+              <span key={b.clergyID} className="inline-block mr-3">
+                {b.clergyName}
+                {b.isInCharge && <span className="ml-1 text-xs bg-blue-200 text-blue-900 px-1 rounded">In-Charge</span>}
+              </span>
+            ))}
+          </div>
         </div>
+        <Link href={`/diocese/${view.dioceseId}/transfers`}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded whitespace-nowrap">
+          Clergy transfers
+        </Link>
       </header>
 
       <section className="bg-white shadow rounded p-4">
