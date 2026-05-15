@@ -57,18 +57,44 @@ interface Props {
 export function ClergyView({ clergy }: Props) {
   const [query, setQuery] = useState<string>("");
   const [rankFilter, setRankFilter] = useState<string>("");
+  const [assignmentFilter, setAssignmentFilter] = useState<string>("");
+
+  const assignments = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of clergy) {
+      if (c.assignmentName && c.assignmentName.trim()) set.add(c.assignmentName);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [clergy]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return clergy.filter((c) => {
       if (rankFilter && c.rankLabel !== rankFilter) return false;
+      if (assignmentFilter && c.assignmentName !== assignmentFilter) return false;
       if (!q) return true;
       return (
         c.clergyName.toLowerCase().includes(q) ||
         (c.assignmentName ?? "").toLowerCase().includes(q)
       );
     });
-  }, [clergy, query, rankFilter]);
+  }, [clergy, query, rankFilter, assignmentFilter]);
+
+  const rankCountsUnderOtherFilters = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const counts = new Map<string, number>();
+    for (const c of clergy) {
+      if (assignmentFilter && c.assignmentName !== assignmentFilter) continue;
+      if (q) {
+        const hit =
+          c.clergyName.toLowerCase().includes(q) ||
+          (c.assignmentName ?? "").toLowerCase().includes(q);
+        if (!hit) continue;
+      }
+      counts.set(c.rankLabel, (counts.get(c.rankLabel) ?? 0) + 1);
+    }
+    return counts;
+  }, [clergy, query, assignmentFilter]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, ClergyDto[]>();
@@ -77,7 +103,6 @@ export function ClergyView({ clergy }: Props) {
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(c);
     }
-    // Sort entries by RANK_ORDER, with unknown ranks last.
     return Array.from(map.entries()).sort(([a], [b]) => {
       const ia = RANK_ORDER.indexOf(a);
       const ib = RANK_ORDER.indexOf(b);
@@ -87,61 +112,152 @@ export function ClergyView({ clergy }: Props) {
     });
   }, [filtered]);
 
+  const hasActiveFilter = Boolean(rankFilter || assignmentFilter || query.trim());
+  const totalUnderOtherFilters = Array.from(rankCountsUnderOtherFilters.values()).reduce(
+    (a, b) => a + b,
+    0,
+  );
+
   return (
     <>
-      <div className="mt-6 flex flex-wrap gap-3 items-end">
-        <label className="flex-1 min-w-[200px]">
-          <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">
-            Search
-          </span>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Name or assignment…"
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          />
-        </label>
-        <label>
-          <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">
-            Rank
-          </span>
-          <select
-            value={rankFilter}
-            onChange={(e) => setRankFilter(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">All ranks</option>
-            {RANK_ORDER.map((r) => (
-              <option key={r} value={r}>{RANK_PRETTY[r] ?? r}</option>
-            ))}
-          </select>
-        </label>
-        {(rankFilter || query) && (
+      <div className="mt-6 max-w-5xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { setRankFilter(""); setQuery(""); }}
-            className="text-sm text-red-700 hover:underline pb-2"
+            type="button"
+            onClick={() => setRankFilter("")}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-red-400 ${
+              rankFilter === ""
+                ? "bg-gradient-to-r from-red-700 to-red-900 text-white shadow"
+                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+            }`}
+            aria-pressed={rankFilter === ""}
           >
-            Clear
+            All
+            <span className="ml-1.5 opacity-75 text-xs">({totalUnderOtherFilters})</span>
           </button>
+          {RANK_ORDER.map((r) => {
+            const isActive = rankFilter === r;
+            const count = rankCountsUnderOtherFilters.get(r) ?? 0;
+            const grad = rankGradient(r);
+            const chip = rankChip(r);
+            // Rank with zero matches under current filters is still rendered (dimmed)
+            // so the operator can see the full taxonomy.
+            const disabledLook = count === 0 && !isActive;
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRankFilter(isActive ? "" : r)}
+                aria-pressed={isActive}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-red-400 ${
+                  isActive
+                    ? `bg-gradient-to-r ${grad} text-white shadow`
+                    : `${chip} hover:opacity-90`
+                } ${disabledLook ? "opacity-40" : ""}`}
+              >
+                {RANK_PRETTY[r] ?? r}
+                <span className="ml-1.5 opacity-75 text-xs">({count})</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 flex flex-wrap justify-center items-end gap-3">
+          <label className="flex-1 min-w-[220px] max-w-md">
+            <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">
+              Search
+            </span>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Name or assignment…"
+              className="w-full border border-gray-300 rounded px-3 py-2"
+            />
+          </label>
+          <label className="min-w-[220px]">
+            <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">
+              Assignment
+            </span>
+            <select
+              value={assignmentFilter}
+              onChange={(e) => setAssignmentFilter(e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+            >
+              <option value="">All assignments</option>
+              {assignments.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </label>
+          {hasActiveFilter && (
+            <button
+              type="button"
+              onClick={() => { setRankFilter(""); setQuery(""); setAssignmentFilter(""); }}
+              className="text-sm text-red-700 hover:underline pb-2"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {hasActiveFilter && (
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {rankFilter && (
+              <button
+                type="button"
+                onClick={() => setRankFilter("")}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-800 hover:bg-gray-200"
+              >
+                Rank: {RANK_PRETTY[rankFilter] ?? rankFilter}
+                <span aria-hidden="true">×</span>
+                <span className="sr-only">Clear rank filter</span>
+              </button>
+            )}
+            {assignmentFilter && (
+              <button
+                type="button"
+                onClick={() => setAssignmentFilter("")}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-800 hover:bg-gray-200"
+              >
+                Assignment: {assignmentFilter}
+                <span aria-hidden="true">×</span>
+                <span className="sr-only">Clear assignment filter</span>
+              </button>
+            )}
+            {query.trim() && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-800 hover:bg-gray-200"
+              >
+                &ldquo;{query.trim()}&rdquo;
+                <span aria-hidden="true">×</span>
+                <span className="sr-only">Clear search</span>
+              </button>
+            )}
+          </div>
         )}
-        <span className="text-sm text-gray-600 pb-2 ml-auto">
+
+        <p className="mt-3 text-center text-sm text-gray-600">
           Showing <strong>{filtered.length}</strong> of {clergy.length}
-        </span>
+        </p>
       </div>
 
       {grouped.length === 0 ? (
-        <p className="mt-10 text-gray-500">No clergy match those filters.</p>
+        <p className="mt-10 text-center text-gray-500">No clergy match those filters.</p>
       ) : (
-        <div className="mt-8 space-y-10">
+        <div className="mt-8 max-w-6xl mx-auto space-y-10">
           {grouped.map(([rankKey, members]) => {
             const tint = rankChip(rankKey);
             const grad = rankGradient(rankKey);
             return (
               <section key={rankKey}>
-                <h2 className={`text-xl font-bold rounded-md px-3 py-1.5 mb-4 inline-flex items-baseline gap-2 ${tint}`}>
-                  {RANK_PRETTY[rankKey] ?? rankKey}
-                  <span className="font-normal text-sm opacity-70">· {members.length}</span>
+                <h2 className="text-center mb-4">
+                  <span className={`text-xl font-bold rounded-md px-3 py-1.5 inline-flex items-baseline gap-2 ${tint}`}>
+                    {RANK_PRETTY[rankKey] ?? rankKey}
+                    <span className="font-normal text-sm opacity-70">· {members.length}</span>
+                  </span>
                 </h2>
                 <ul className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {members.map((c) => (
