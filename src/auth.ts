@@ -28,6 +28,20 @@ interface Profile {
   profilePictureBlobName: string | null;
   officials: OfficialScope[];
   roleLabel: RoleLabel;
+  // Expanded self-service profile fields (added 2026-05-15). All optional;
+  // surface in UserMenu / /profile and editable via PATCH /Profile/me.
+  alternateEmail: string | null;
+  alternatePhone: string | null;
+  dateOfBirth: string | null;          // ISO date "YYYY-MM-DD"
+  gender: string | null;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  occupation: string | null;
+  bio: string | null;
+  profilePhotoUrl: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
 }
 
 declare module "next-auth" {
