@@ -16,21 +16,19 @@ function rankRibbonClass(rankLabel: string | null | undefined): string {
   if (n === "archbishop" || n === "presidingarchbishop") return "bg-pink-600";
   if (n === "bishop") return "bg-red-700";
   if (n === "archdeacon" || n === "ven") return "bg-yellow-600";
-  if (n === "pastor" || n === "rev") return "bg-blue-900";
+  if (n === "pastor" || n === "rev") return "bg-[#73c2fb]";
   if (n === "deacon" || n === "churchleader") return "bg-gray-900";
   return "bg-gray-700";
 }
 
-// Coloured ring around the portrait that mirrors the ribbon shade. Tailwind's
-// arbitrary-value ring colour utilities (ring-blue-900 etc.) are concrete
-// classes so the JIT can pick them up at build time.
+// Coloured ring around the portrait that mirrors the ribbon shade.
 function rankRingClass(rankLabel: string | null | undefined): string {
   if (!rankLabel) return "ring-gray-300";
   const n = rankLabel.replace(/\s+/g, "").toLowerCase();
   if (n === "archbishop" || n === "presidingarchbishop") return "ring-pink-500";
   if (n === "bishop") return "ring-red-600";
   if (n === "archdeacon" || n === "ven") return "ring-yellow-500";
-  if (n === "pastor" || n === "rev") return "ring-blue-900";
+  if (n === "pastor" || n === "rev") return "ring-[#73c2fb]";
   if (n === "deacon" || n === "churchleader") return "ring-gray-800";
   return "ring-gray-400";
 }
@@ -72,7 +70,9 @@ const LEVEL_LABEL: Record<number, string> = {
 function initials(name: string): string {
   const parts = name.replace(/\([^)]*\)/g, "").trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
+  // For a single-name input ("Samuel"), prefer the first two letters
+  // ("SA") so the circle never reads as a lone initial.
+  if (parts.length === 1) return (parts[0].slice(0, 2) || parts[0][0] || "?").toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 

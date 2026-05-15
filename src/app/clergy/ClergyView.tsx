@@ -46,7 +46,7 @@ function initials(name: string): string {
     .trim();
   const parts = cleaned.split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
+  if (parts.length === 1) return (parts[0].slice(0, 2) || parts[0][0] || "?").toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
@@ -259,12 +259,12 @@ export function ClergyView({ clergy }: Props) {
                     <span className="font-normal text-sm opacity-70">· {members.length}</span>
                   </span>
                 </h2>
-                <ul className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <ul className="flex flex-wrap justify-center gap-4">
                   {members.map((c) => (
-                    <li key={c.clergyId}>
+                    <li key={c.clergyId} className="w-44">
                       <Link
                         href={`/clergy/${c.clergyId}`}
-                        className="block border border-gray-200 rounded-lg p-5 text-center hover:shadow-md hover:border-red-300 transition bg-white"
+                        className="block border border-gray-200 rounded-lg p-3 text-center hover:shadow-md hover:border-red-300 transition bg-white"
                       >
                         {c.photoUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element

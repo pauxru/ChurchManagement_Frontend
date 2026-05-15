@@ -16,7 +16,9 @@ export interface VestryMember {
 function initials(name: string): string {
   const parts = name.replace(/\([^)]*\)/g, "").trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
+  // For a single-name input ("Samuel"), prefer the first two letters
+  // ("SA") so the circle never reads as a lone initial.
+  if (parts.length === 1) return (parts[0].slice(0, 2) || parts[0][0] || "?").toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
@@ -30,11 +32,11 @@ export function VestryCard({ member }: { member: VestryMember }) {
   return (
     <Link
       href={`/clergy/${member.clergyId}`}
-      className="relative block bg-white border border-gray-200 rounded-xl px-4 pt-6 pb-4 hover:shadow-lg hover:border-red-300 transition"
+      className="relative block bg-white border border-gray-200 rounded-xl px-3 pt-4 pb-3 hover:shadow-lg hover:border-red-300 transition"
     >
       {member.isInCharge && (
         <span
-          className="absolute top-2 right-2 bg-yellow-100 text-yellow-900 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm"
+          className="absolute top-1.5 right-1.5 bg-yellow-100 text-yellow-900 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm"
           title="Lead clergy for this assignment"
         >
           In-charge
@@ -52,10 +54,10 @@ export function VestryCard({ member }: { member: VestryMember }) {
           )}
         </div>
       </div>
-      <div className="mt-3 text-center">
+      <div className="mt-2 text-center">
         <h4 className="font-semibold text-sm text-gray-900 leading-tight">{display}</h4>
         {member.assignmentName && (
-          <p className="text-xs text-gray-500 mt-1 truncate">{member.assignmentName}</p>
+          <p className="text-xs text-gray-500 mt-0.5 truncate">{member.assignmentName}</p>
         )}
       </div>
     </Link>

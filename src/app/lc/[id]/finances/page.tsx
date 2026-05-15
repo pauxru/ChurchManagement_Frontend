@@ -5,6 +5,7 @@
 // selected month in the footer.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
@@ -148,6 +149,12 @@ export default function FinancesPage() {
             Track inflows and outflows. The running balance below is calculated for the selected month.
           </p>
         </div>
+        <Link
+          href={`/lc/${lcId}/cess`}
+          className="shrink-0 bg-red-700 hover:bg-red-800 text-white text-sm font-medium px-4 py-2 rounded shadow-sm"
+        >
+          Cess →
+        </Link>
       </div>
 
       {error && (

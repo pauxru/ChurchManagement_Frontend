@@ -15,8 +15,13 @@ export default {
   // explicitly here too so future refactors that move the helper outside
   // ./src/lib won't silently break the colour-coded circles.
   safelist: [
-    "from-blue-900",
-    "to-blue-950",
+    // Pastor: operator-specified sky blue (#73c2fb, RGB 115,194,251).
+    "from-[#73c2fb]",
+    "to-[#3b9fe0]",
+    "ring-[#73c2fb]",
+    "bg-[#73c2fb]",
+    "bg-[#dff0fd]",
+    "text-[#0b3d63]",
     "from-pink-500",
     "to-pink-700",
     "from-yellow-500",
@@ -25,12 +30,10 @@ export default {
     "to-red-800",
     "from-gray-800",
     "to-black",
-    "ring-blue-900",
     "ring-pink-500",
     "ring-yellow-500",
     "ring-red-600",
     "ring-gray-800",
-    "bg-blue-900",
     "bg-pink-600",
     "bg-yellow-600",
     "bg-red-700",

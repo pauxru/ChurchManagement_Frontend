@@ -7,17 +7,6 @@ import { useSession } from "next-auth/react";
 import { VestryCard, type VestryMember } from "@/components/VestryCard";
 import { apiFetch } from "@/lib/apiClient";
 
-const POSITION_LABEL: Record<number, string> = {
-  1: "Chairperson",
-  2: "Vice Chairperson",
-  3: "Chairlady",
-  4: "Vice Chairlady",
-  5: "Secretary",
-  6: "Vice Secretary",
-  7: "Treasurer",
-  8: "Vice Treasurer",
-};
-
 interface OfficialEntry {
   id: number;
   name: string | null;
@@ -65,17 +54,40 @@ function formatKes(amount: number | null | undefined): string {
 }
 
 const MANAGE_TILES = [
-  { slug: "plans",                label: "Plans",            desc: "Strategic plans, events, projects" },
-  { slug: "cess",                 label: "Cess",             desc: "Monthly diocese contributions" },
-  { slug: "finances",             label: "Finances",         desc: "Tithes, offerings, expenses" },
-  { slug: "communication",        label: "Communication",    desc: "Posts to members + officials" },
-  { slug: "groups",               label: "Groups",           desc: "Committees and ministries" },
-  { slug: "fellowships",          label: "Fellowships",      desc: "Prayer cells, study groups" },
-  { slug: "minutes",              label: "Meetings",         desc: "Meeting minutes and notes" },
+  { slug: "plans",        label: "Projects",     desc: "Strategic plans, events, projects" },
+  { slug: "finances",     label: "Finances",     desc: "Tithes, offerings, expenses, cess" },
+  { slug: "ministries",   label: "Ministries",   desc: "Fellowships and groups" },
+  { slug: "secretariate", label: "Secretariate", desc: "Communication and meetings" },
+];
+
+// The eight officer seats every LC has. Used to fill placeholder rows in
+// the Church Office section so the page reads as "we have a Treasurer
+// slot — it just isn't filled yet" rather than "no officials".
+const OFFICIAL_SEATS: Array<{ position: number; title: string }> = [
+  { position: 1, title: "Chairperson" },
+  { position: 2, title: "Vice Chairperson" },
+  { position: 3, title: "Chairlady" },
+  { position: 4, title: "Vice Chairlady" },
+  { position: 5, title: "Secretary" },
+  { position: 6, title: "Vice Secretary" },
+  { position: 7, title: "Treasurer" },
+  { position: 8, title: "Vice Treasurer" },
 ];
 
 function placeholderInitials(name: string): string {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase() ?? "").join("");
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return (parts[0].slice(0, 2) || parts[0][0] || "?").toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// Normalise an LC's display name. Seed data trims "Church" off the LC
+// name (so "Gatundu Main" sits cleanly in lists / cards), but on the
+// hero we want the full natural form: "Gatundu Main Church (A.I.P.C.A)".
+function displayLcName(raw: string): string {
+  const trimmed = raw.trim();
+  const hasChurch = /\bchurch\b/i.test(trimmed);
+  return `${trimmed}${hasChurch ? "" : " Church"} (A.I.P.C.A)`;
 }
 
 export default function LcOverviewPage() {
@@ -87,6 +99,7 @@ export default function LcOverviewPage() {
   const [vestry, setVestry] = useState<VestryMember[]>([]);
   const [officials, setOfficials] = useState<OfficialEntry[]>([]);
   const [notFound, setNotFound] = useState(false);
+  const [expanded, setExpanded] = useState<null | "vestry" | "office">(null);
 
   useEffect(() => {
     if (!lcId) return;
@@ -160,15 +173,16 @@ export default function LcOverviewPage() {
               />
             ) : (
               <div className="w-24 h-24 rounded-full bg-yellow-400 text-red-900 flex items-center justify-center font-bold text-3xl shadow-lg">
-                {placeholderInitials(lc.localChurchName) || "?"}
+                {placeholderInitials(lc.localChurchName)}
               </div>
             )}
+            <p className="text-yellow-200 italic text-sm md:text-base">AIPCA · Africa Independent Pentecostal Church of Africa</p>
             {lc.localChurchCode && (
               <p className="uppercase tracking-widest text-yellow-300 text-xs font-semibold">
                 {lc.localChurchCode}
               </p>
             )}
-            <h1 className="text-4xl md:text-5xl font-extrabold">{lc.localChurchName}</h1>
+            <h1 className="text-4xl md:text-5xl font-extrabold">{displayLcName(lc.localChurchName)}</h1>
             {(lc.parishName || lc.dioceseName) && (
               <p className="text-lg text-red-100">
                 {lc.parishName && <>{lc.parishName.replace(/\s+Parish$/i, "")} Parish</>}
@@ -176,74 +190,11 @@ export default function LcOverviewPage() {
                 {lc.dioceseName && <>{lc.dioceseName.replace(/\s+Diocese$/i, "")} Diocese</>}
               </p>
             )}
-            <p className="mt-2 text-yellow-200 italic">AIPCA · Africa Independent Pentecostal Church of Africa</p>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-12 space-y-12 max-w-5xl">
-        {vestry.length > 0 && (
-          <section>
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-2xl font-bold text-red-900">Vestry</h2>
-              <p className="text-sm text-gray-500">
-                Parish clergy serving this Local Church · {vestry.length}
-              </p>
-            </div>
-            <div className="mb-4 flex flex-wrap gap-x-5 gap-y-1 items-center text-xs text-gray-600">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-yellow-500" /> Archdeacon
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-blue-900" /> Pastor
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Deacon
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Church Leader
-              </span>
-            </div>
-            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {vestry.map((m) => (
-                <li key={m.clergyId}>
-                  <VestryCard member={m} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {officials.length > 0 && (
-          <section>
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-2xl font-bold text-red-900">Leadership</h2>
-              <p className="text-sm text-gray-500">
-                Elected officials · {officials.length}
-              </p>
-            </div>
-            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {officials.map((o) => (
-                <li key={o.id} className={`bg-white border border-gray-200 rounded-xl px-4 pt-6 pb-4 text-center ${o.isActive ? "" : "opacity-60"}`}>
-                  {o.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={o.photoUrl} alt={o.name ?? ""} className="mx-auto w-24 h-24 rounded-full object-cover ring-4 ring-white shadow" />
-                  ) : (
-                    <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-red-700 to-red-900 text-white flex items-center justify-center font-bold text-2xl ring-4 ring-white shadow">
-                      {(o.name ?? "?").trim().slice(0, 1).toUpperCase()}
-                    </div>
-                  )}
-                  <h4 className="mt-3 font-semibold text-sm">{o.name ?? "Unnamed official"}</h4>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {o.position != null ? POSITION_LABEL[o.position] ?? "Member" : "Unassigned"}
-                    {o.positionDetail ? ` (${o.positionDetail})` : ""}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
+      <main className="container mx-auto px-6 py-12 space-y-10 max-w-5xl">
         <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-2xl font-bold text-red-900 mb-3">About</h2>
           {lc.about || lc.description ? (
@@ -257,6 +208,92 @@ export default function LcOverviewPage() {
               <span className="font-semibold">{lc.inChargePastorName}</span>
             </p>
           )}
+        </section>
+
+        <section>
+          <div className="flex items-start justify-between mb-1 gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-red-900">Vestry</h2>
+              <p className="text-sm text-gray-500">Clergy who serve this Local Church.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExpanded("vestry")}
+              className="shrink-0 p-2 text-gray-500 hover:text-red-700 hover:bg-gray-100 rounded"
+              aria-label="Expand Vestry"
+              title="See all clergy"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M3 3.75A.75.75 0 013.75 3h4a.75.75 0 010 1.5H5.56l2.97 2.97a.75.75 0 01-1.06 1.06L4.5 5.56v2.19a.75.75 0 01-1.5 0v-4zm13.25-.75a.75.75 0 01.75.75v4a.75.75 0 01-1.5 0V5.56l-2.97 2.97a.75.75 0 11-1.06-1.06l2.97-2.97h-2.19a.75.75 0 010-1.5h4zM3.75 12a.75.75 0 01.75.75v2.19l2.97-2.97a.75.75 0 011.06 1.06L5.56 16h2.19a.75.75 0 010 1.5h-4a.75.75 0 01-.75-.75v-4a.75.75 0 01.75-.75zm12.5 0a.75.75 0 01.75.75v4a.75.75 0 01-.75.75h-4a.75.75 0 010-1.5h2.19l-2.97-2.97a.75.75 0 111.06-1.06L15.5 14.94v-2.19a.75.75 0 01.75-.75z" />
+              </svg>
+            </button>
+          </div>
+          <div className="mb-3 flex flex-wrap gap-x-5 gap-y-1 items-center text-xs text-gray-600">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-yellow-500" /> Archdeacon
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#73c2fb]" /> Pastor
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Deacon
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Church Leader
+            </span>
+          </div>
+          {vestry.length === 0 ? (
+            <p className="text-sm text-gray-400 italic">No clergy on record yet.</p>
+          ) : (
+            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {vestry.slice(0, 8).map((m) => (
+                <li key={m.clergyId}>
+                  <VestryCard member={m} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section>
+          <div className="flex items-start justify-between mb-3 gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-red-900">Church Office</h2>
+              <p className="text-sm text-gray-500">Elected lay officials — chairperson, secretary, treasurer and their vices.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExpanded("office")}
+              className="shrink-0 p-2 text-gray-500 hover:text-red-700 hover:bg-gray-100 rounded"
+              aria-label="Expand Church Office"
+              title="See all officials"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M3 3.75A.75.75 0 013.75 3h4a.75.75 0 010 1.5H5.56l2.97 2.97a.75.75 0 01-1.06 1.06L4.5 5.56v2.19a.75.75 0 01-1.5 0v-4zm13.25-.75a.75.75 0 01.75.75v4a.75.75 0 01-1.5 0V5.56l-2.97 2.97a.75.75 0 11-1.06-1.06l2.97-2.97h-2.19a.75.75 0 010-1.5h4zM3.75 12a.75.75 0 01.75.75v2.19l2.97-2.97a.75.75 0 011.06 1.06L5.56 16h2.19a.75.75 0 010 1.5h-4a.75.75 0 01-.75-.75v-4a.75.75 0 01.75-.75zm12.5 0a.75.75 0 01.75.75v4a.75.75 0 01-.75.75h-4a.75.75 0 010-1.5h2.19l-2.97-2.97a.75.75 0 111.06-1.06L15.5 14.94v-2.19a.75.75 0 01.75-.75z" />
+              </svg>
+            </button>
+          </div>
+          <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {OFFICIAL_SEATS.map((seat) => {
+              const filled = officials.find(o => o.position === seat.position && o.isActive);
+              return (
+                <li key={seat.position} className={`bg-white border border-gray-200 rounded-xl px-3 pt-4 pb-3 text-center ${filled ? "" : "border-dashed"}`}>
+                  {filled?.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={filled.photoUrl} alt={filled.name ?? ""} className="mx-auto w-24 h-24 rounded-full object-cover ring-4 ring-white shadow" />
+                  ) : (
+                    <div className={`mx-auto w-24 h-24 rounded-full flex items-center justify-center font-bold text-2xl ring-4 ring-white shadow ${filled ? "bg-gradient-to-br from-red-700 to-red-900 text-white" : "bg-gray-100 text-gray-400"}`}>
+                      {filled?.name ? placeholderInitials(filled.name) : "—"}
+                    </div>
+                  )}
+                  <h4 className={`mt-2 font-semibold text-sm ${filled ? "text-gray-900" : "text-gray-400"}`}>
+                    {filled?.name ?? "Vacant"}
+                  </h4>
+                  <p className="text-xs text-gray-600 mt-0.5">{seat.title}</p>
+                </li>
+              );
+            })}
+          </ul>
         </section>
 
         <section className="grid md:grid-cols-2 gap-6">
@@ -434,6 +471,92 @@ export default function LcOverviewPage() {
           {lc.localChurchName} · {lc.dioceseName ? `${lc.dioceseName} Diocese · ` : ""}AIPCA
         </p>
       </footer>
+
+      {expanded && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center p-4 overflow-y-auto"
+          onClick={() => setExpanded(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-5xl mt-8 mb-12 p-6 relative"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setExpanded(null)}
+              className="absolute top-3 right-3 p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+              aria-label="Close"
+              title="Close (Esc)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              </svg>
+            </button>
+
+            {expanded === "vestry" && (
+              <>
+                <h2 className="text-2xl font-bold text-red-900 mb-1">Vestry</h2>
+                <p className="text-sm text-gray-500 mb-6">Every clergy member who serves this Local Church.</p>
+                {vestry.length === 0 ? (
+                  <p className="text-gray-500">No clergy on record yet.</p>
+                ) : (
+                  <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {vestry.map((m) => (
+                      <li key={m.clergyId}>
+                        <VestryCard member={m} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+
+            {expanded === "office" && (
+              <>
+                <h2 className="text-2xl font-bold text-red-900 mb-1">Church Office</h2>
+                <p className="text-sm text-gray-500 mb-6">All elected officials — vacant seats included.</p>
+                <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {OFFICIAL_SEATS.map((seat) => {
+                    const filled = officials.find(o => o.position === seat.position && o.isActive);
+                    return (
+                      <li key={seat.position} className={`bg-white border border-gray-200 rounded-xl px-3 pt-4 pb-3 text-center ${filled ? "" : "border-dashed"}`}>
+                        {filled?.photoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={filled.photoUrl} alt={filled.name ?? ""} className="mx-auto w-24 h-24 rounded-full object-cover ring-4 ring-white shadow" />
+                        ) : (
+                          <div className={`mx-auto w-24 h-24 rounded-full flex items-center justify-center font-bold text-2xl ring-4 ring-white shadow ${filled ? "bg-gradient-to-br from-red-700 to-red-900 text-white" : "bg-gray-100 text-gray-400"}`}>
+                            {filled?.name ? placeholderInitials(filled.name) : "—"}
+                          </div>
+                        )}
+                        <h4 className={`mt-2 font-semibold text-sm ${filled ? "text-gray-900" : "text-gray-400"}`}>
+                          {filled?.name ?? "Vacant"}
+                        </h4>
+                        <p className="text-xs text-gray-600 mt-0.5">{seat.title}</p>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {officials.filter(o => o.position == null || o.position > 8).length > 0 && (
+                  <>
+                    <h3 className="text-lg font-bold text-red-900 mt-8 mb-3">Other</h3>
+                    <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {officials.filter(o => o.position == null || o.position > 8).map((o) => (
+                        <li key={o.id} className="bg-white border border-gray-200 rounded-xl px-3 pt-4 pb-3 text-center">
+                          <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-red-700 to-red-900 text-white flex items-center justify-center font-bold text-2xl ring-4 ring-white shadow">
+                            {o.name ? placeholderInitials(o.name) : "—"}
+                          </div>
+                          <h4 className="mt-2 font-semibold text-sm">{o.name ?? "Unnamed"}</h4>
+                          <p className="text-xs text-gray-600 mt-0.5">{o.positionDetail ?? "Member"}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

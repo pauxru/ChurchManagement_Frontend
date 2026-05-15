@@ -16,17 +16,18 @@ interface AccessCheck { lcId: number; name: string; code: string | null; }
 // built around Meetings (title + agenda + chair + date) with attached
 // rich-text notes and file uploads. The legacy /minutes route is left in
 // place but is no longer linked from the tab strip.
+// Tabs after the May-2026 consolidation:
+//   - Cess folded into Finances (button in Finances opens /cess)
+//   - Fellowships + Groups merged into Ministries
+//   - Communication + Meetings merged into Secretariate
 const TABS = [
   { slug: "", label: "Overview" },
   { slug: "members", label: "Members" },
   { slug: "leadership", label: "Leadership" },
   { slug: "plans", label: "Projects" },
-  { slug: "cess", label: "Cess" },
   { slug: "finances", label: "Finances" },
-  { slug: "communication", label: "Communication" },
-  { slug: "groups", label: "Groups" },
-  { slug: "fellowships", label: "Fellowships" },
-  { slug: "meetings", label: "Meetings" },
+  { slug: "ministries", label: "Ministries" },
+  { slug: "secretariate", label: "Secretariate" },
 ];
 
 export default function LcLayout({ children }: { children: React.ReactNode }) {
