@@ -473,7 +473,7 @@ export default function LcOverviewPage() {
         <p className="text-sm">
           {lc.localChurchName} · {lc.dioceseName ? `${lc.dioceseName} Diocese · ` : ""}AIPCA
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-[10px] text-gray-500 tracking-wide">
           Made with <span aria-hidden>❤️</span><span className="sr-only">love</span> by Pawad Technologies ltd
         </p>
       </footer>

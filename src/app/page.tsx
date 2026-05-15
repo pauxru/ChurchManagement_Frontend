@@ -346,7 +346,7 @@ export default async function Home() {
         <p className="text-sm">
           © {new Date().getFullYear()} Gatundu Diocese · AIPCA Nairobi Archdiocese
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-[10px] text-gray-500 tracking-wide">
           Made with <span aria-hidden>❤️</span><span className="sr-only">love</span> by Pawad Technologies ltd
         </p>
       </footer>
