@@ -7,6 +7,34 @@ import { Navbar } from "@/components/Navbar";
 import { clergyDisplayName } from "@/lib/clergyDisplay";
 import { rankChip, rankGradient } from "@/lib/clergyColors";
 
+// Solid background colour per rank for the hero ribbon. Keeps the name on a
+// neutral white surface below — the ribbon supplies the rank colour signal
+// without ever overlaying photo content under the heading.
+function rankRibbonClass(rankLabel: string | null | undefined): string {
+  if (!rankLabel) return "bg-gray-700";
+  const n = rankLabel.replace(/\s+/g, "").toLowerCase();
+  if (n === "archbishop" || n === "presidingarchbishop") return "bg-pink-600";
+  if (n === "bishop") return "bg-red-700";
+  if (n === "archdeacon" || n === "ven") return "bg-yellow-600";
+  if (n === "pastor" || n === "rev") return "bg-blue-900";
+  if (n === "deacon" || n === "churchleader") return "bg-gray-900";
+  return "bg-gray-700";
+}
+
+// Coloured ring around the portrait that mirrors the ribbon shade. Tailwind's
+// arbitrary-value ring colour utilities (ring-blue-900 etc.) are concrete
+// classes so the JIT can pick them up at build time.
+function rankRingClass(rankLabel: string | null | undefined): string {
+  if (!rankLabel) return "ring-gray-300";
+  const n = rankLabel.replace(/\s+/g, "").toLowerCase();
+  if (n === "archbishop" || n === "presidingarchbishop") return "ring-pink-500";
+  if (n === "bishop") return "ring-red-600";
+  if (n === "archdeacon" || n === "ven") return "ring-yellow-500";
+  if (n === "pastor" || n === "rev") return "ring-blue-900";
+  if (n === "deacon" || n === "churchleader") return "ring-gray-800";
+  return "ring-gray-400";
+}
+
 interface ClergyDetail {
   clergyId: number;
   clergyName: string;
@@ -122,41 +150,46 @@ export default function ClergyDetailPage() {
   const rankPretty = RANK_PRETTY[c.rankLabel] ?? c.rankLabel;
   const ordained = formatYearOrDate(c.ordinationDate);
   const ordYear = ordinationYear(c.ordinationDate);
-  const heroGrad = rankGradient(c.rankLabel);
+  const ribbonBg = rankRibbonClass(c.rankLabel);
+  const portraitRing = rankRingClass(c.rankLabel);
+  const initialsGrad = rankGradient(c.rankLabel);
   const chip = rankChip(c.rankLabel);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      {/* Hero */}
-      <header className={`relative bg-gradient-to-br ${heroGrad} text-white`}>
-        <div className="container mx-auto px-6 py-16">
-          <div className="grid md:grid-cols-3 gap-8 items-center max-w-4xl mx-auto">
-            <div className="flex justify-center">
-              {c.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={c.photoUrl}
-                  alt={display}
-                  className="w-44 h-44 rounded-full object-cover shadow-lg ring-4 ring-white/40"
-                />
-              ) : (
-                <div className="w-44 h-44 rounded-full bg-white/15 backdrop-blur-sm text-white flex items-center justify-center font-bold text-5xl shadow-lg ring-4 ring-white/40">
-                  {initials(c.clergyName)}
-                </div>
-              )}
-            </div>
-            <div className="md:col-span-2 text-center md:text-left">
-              <p className="uppercase tracking-widest text-white/80 text-xs font-semibold">
-                {rankPretty}
-              </p>
-              <h1 className="mt-2 text-4xl md:text-5xl font-extrabold drop-shadow">{display}</h1>
-              {c.assignmentName && (
-                <p className="mt-3 text-lg text-white/90">{c.assignmentName}</p>
-              )}
-            </div>
+      {/* Solid rank-coloured ribbon. Only the rank label sits on the
+          coloured surface — the name + photo live below on white so
+          legibility is consistent regardless of portrait content. */}
+      <div className={`${ribbonBg} text-white`}>
+        <div className="container mx-auto px-6 py-3 text-center">
+          <p className="uppercase tracking-widest text-xs font-semibold">{rankPretty}</p>
+        </div>
+      </div>
+
+      {/* Hero card — circular photo with a coloured ring matching the
+          ribbon, then a large heading on a clean white surface. */}
+      <header className="container mx-auto px-6 pt-8 max-w-4xl">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 px-6 py-8 flex flex-col items-center text-center">
+          <div className="flex justify-center">
+            {c.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={c.photoUrl}
+                alt={display}
+                className={`w-[200px] h-[200px] rounded-full object-cover shadow-lg ring-4 ${portraitRing}`}
+              />
+            ) : (
+              <div className={`w-[200px] h-[200px] rounded-full bg-gradient-to-br ${initialsGrad} text-white flex items-center justify-center font-bold text-6xl shadow-lg ring-4 ${portraitRing}`}>
+                {initials(c.clergyName)}
+              </div>
+            )}
           </div>
+          <h1 className="mt-6 text-4xl md:text-5xl font-extrabold text-gray-900">{display}</h1>
+          {c.assignmentName && (
+            <p className="mt-3 text-lg text-gray-600">{c.assignmentName}</p>
+          )}
         </div>
       </header>
 

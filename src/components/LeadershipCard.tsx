@@ -59,10 +59,10 @@ export function LeadershipCard({
   const grad = gradient ?? rankGradient(clergy?.rankLabel);
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 px-4 pt-6 pb-4">
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 px-6 pt-8 pb-6">
       <div className="flex justify-center">
         <div
-          className={`${tokens.circle} rounded-full bg-gradient-to-br ${grad} flex items-center justify-center overflow-hidden shadow-md ring-4 ring-white`}
+          className={`${tokens.circle} rounded-full bg-gradient-to-br ${grad} flex items-center justify-center overflow-hidden shadow-lg ring-4 ring-white`}
         >
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -74,7 +74,7 @@ export function LeadershipCard({
           )}
         </div>
       </div>
-      <div className="mt-4 text-center">
+      <div className="mt-5 text-center">
         <p className={`text-red-700 font-medium ${tokens.title}`}>{titleLabel}</p>
         <h3 className={`mt-1 font-bold text-gray-900 ${tokens.name}`}>{display}</h3>
         {assignment && <p className="text-sm text-gray-600 mt-1">{assignment}</p>}

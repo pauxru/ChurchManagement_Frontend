@@ -280,6 +280,26 @@ export default function LcOverviewPage() {
                 Parish clergy serving this Local Church · {vestry.length}
               </p>
             </div>
+            {/* Rank colour legend — keeps the user oriented while scanning
+                the circles. Dots are the same hues used in clergyColors.ts. */}
+            <div className="mb-4 flex flex-wrap gap-x-5 gap-y-1 items-center text-xs text-gray-600">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-yellow-500" /> Archdeacon
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-900" /> Pastor
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Deacon
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Church Leader
+              </span>
+              <span className="inline-flex items-center gap-1.5 ml-auto">
+                <span className="inline-block bg-yellow-100 text-yellow-900 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full">In-charge</span>
+                <span>indicates the lead clergy</span>
+              </span>
+            </div>
             <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {vestry.map((m) => (
                 <li key={m.clergyId}>
