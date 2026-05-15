@@ -20,10 +20,11 @@ interface AccessCheck { lcId: number; name: string; code: string | null; }
 //   - Cess folded into Finances (button in Finances opens /cess)
 //   - Fellowships + Groups merged into Ministries
 //   - Communication + Meetings merged into Secretariate
+//   - Leadership is now part of the Overview (Church Office section);
+//     the /leadership route still exists for direct nav + admin reach.
 const TABS = [
   { slug: "", label: "Overview" },
   { slug: "members", label: "Members" },
-  { slug: "leadership", label: "Leadership" },
   { slug: "plans", label: "Projects" },
   { slug: "finances", label: "Finances" },
   { slug: "ministries", label: "Ministries" },

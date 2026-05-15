@@ -11,10 +11,10 @@ const DEFAULT_DIOCESE_ID = process.env.NEXT_PUBLIC_DEFAULT_DIOCESE_ID ?? "1";
 export function Navbar() {
   const { data: session, status } = useSession();
   const signedIn = status !== "loading" && !!session?.user;
-  // Transfers link is shown to every signed-in user. The backend
-  // (/Bishop/transfers endpoints + the page itself) gates who can actually
-  // see and edit data; gating the link in the nav meant users with the
-  // right backend access still couldn't find the entry point.
+  // TEMPORARY: Transfers link is open to every signed-in user. This is
+  // a deliberate operator-requested opening — restore the Bishop+ gate
+  // by swapping back to `useCanManageTransfers()` from
+  // @/lib/permissions once the diocesan workflow is bedded in.
   const canSeeTransfers = signedIn;
 
   return (

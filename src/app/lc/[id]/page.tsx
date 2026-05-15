@@ -82,12 +82,12 @@ function placeholderInitials(name: string): string {
 }
 
 // Normalise an LC's display name. Seed data trims "Church" off the LC
-// name (so "Gatundu Main" sits cleanly in lists / cards), but on the
-// hero we want the full natural form: "Gatundu Main Church (A.I.P.C.A)".
+// name (so "Gatundu Main" sits cleanly in lists / cards); the hero adds
+// it back. The denomination "(A.I.P.C.A)" lives on a separate line.
 function displayLcName(raw: string): string {
   const trimmed = raw.trim();
   const hasChurch = /\bchurch\b/i.test(trimmed);
-  return `${trimmed}${hasChurch ? "" : " Church"} (A.I.P.C.A)`;
+  return `${trimmed}${hasChurch ? "" : " Church"}`;
 }
 
 export default function LcOverviewPage() {
@@ -176,7 +176,7 @@ export default function LcOverviewPage() {
                 {placeholderInitials(lc.localChurchName)}
               </div>
             )}
-            <p className="text-yellow-200 italic text-sm md:text-base">AIPCA · Africa Independent Pentecostal Church of Africa</p>
+            <p className="text-yellow-200 italic text-sm md:text-base">Africa Independent Pentecostal Church of Africa (A.I.P.C.A)</p>
             {lc.localChurchCode && (
               <p className="uppercase tracking-widest text-yellow-300 text-xs font-semibold">
                 {lc.localChurchCode}
@@ -273,8 +273,11 @@ export default function LcOverviewPage() {
               </svg>
             </button>
           </div>
-          <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {OFFICIAL_SEATS.map((seat) => {
+          {/* Inline only the top two seats — Chairperson + Chairlady — so
+              the overview stays compact. The other six officers are
+              visible via the expand modal. */}
+          <ul className="grid grid-cols-2 gap-3 max-w-xl">
+            {OFFICIAL_SEATS.filter(s => s.position === 1 || s.position === 3).map((seat) => {
               const filled = officials.find(o => o.position === seat.position && o.isActive);
               return (
                 <li key={seat.position} className={`bg-white border border-gray-200 rounded-xl px-3 pt-4 pb-3 text-center ${filled ? "" : "border-dashed"}`}>
