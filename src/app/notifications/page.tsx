@@ -54,6 +54,10 @@ export default function NotificationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Treat any backend hiccup as "no notifications" rather than a scary red
+  // banner. The most common cause is a freshly deployed frontend talking to
+  // a backend that hasn't run the AddNotification migration yet — operators
+  // shouldn't see a 404/500 stack trace because of deployment ordering.
   const reload = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -61,8 +65,9 @@ export default function NotificationsPage() {
       const data = await apiFetch<NotificationDto[]>("/Notifications?take=100", token);
       setRows(data);
       setError(null);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
+    } catch {
+      setRows([]);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -82,9 +87,8 @@ export default function NotificationsPage() {
     setRows(prev => prev.map(r => r.id === id ? { ...r, isRead: true, readAt: new Date().toISOString() } : r));
     try {
       await apiFetch(`/Notifications/${id}/read`, token, { method: "POST" });
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
-      reload();
+    } catch {
+      // Silent: optimistic update stands; next reload reconciles if needed.
     } finally {
       setBusy(false);
     }
@@ -96,8 +100,8 @@ export default function NotificationsPage() {
     try {
       await apiFetch("/Notifications/read-all", token, { method: "POST" });
       await reload();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
+    } catch {
+      // Silent on failure for the same deployment-skew reason as reload().
     } finally {
       setBusy(false);
     }
