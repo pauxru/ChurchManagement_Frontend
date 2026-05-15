@@ -342,9 +342,12 @@ export default async function Home() {
         </div>
       </section>
 
-      <footer className="bg-gray-900 text-gray-300 py-6 text-center">
+      <footer className="bg-gray-900 text-gray-300 py-6 text-center space-y-1">
         <p className="text-sm">
           © {new Date().getFullYear()} Gatundu Diocese · AIPCA Nairobi Archdiocese
+        </p>
+        <p className="text-xs text-gray-500">
+          Made with <span aria-hidden>❤️</span><span className="sr-only">love</span> by Pawad Technologies ltd
         </p>
       </footer>
     </div>

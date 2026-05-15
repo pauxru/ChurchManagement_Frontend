@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/apiClient";
 
@@ -329,7 +329,12 @@ export function UserMenu({ size = 36 }: Props) {
           <div className="border-t px-4 py-2">
             <button
               type="button"
-              onClick={() => { setOpen(false); router.push("/"); signOut({ callbackUrl: "/" }); }}
+              // Hit the server-side federated-signout route. It clears the
+              // NextAuth cookie AND redirects through Entra's end-session
+              // endpoint so the CIAM SSO cookie also dies — otherwise
+              // clicking Sign in again would silently re-attach the same
+              // session.
+              onClick={() => { setOpen(false); window.location.href = "/api/auth/federated-signout"; }}
               className="w-full text-left text-sm text-red-700 hover:text-red-900 font-medium py-1"
               role="menuitem"
             >

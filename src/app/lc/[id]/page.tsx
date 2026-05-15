@@ -469,9 +469,12 @@ export default function LcOverviewPage() {
         )}
       </main>
 
-      <footer className="bg-gray-900 text-gray-300 py-8 text-center mt-12">
+      <footer className="bg-gray-900 text-gray-300 py-8 text-center mt-12 space-y-1">
         <p className="text-sm">
           {lc.localChurchName} · {lc.dioceseName ? `${lc.dioceseName} Diocese · ` : ""}AIPCA
+        </p>
+        <p className="text-xs text-gray-500">
+          Made with <span aria-hidden>❤️</span><span className="sr-only">love</span> by Pawad Technologies ltd
         </p>
       </footer>
 

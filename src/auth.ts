@@ -127,7 +127,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
       issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
       authorization: {
-        params: { scope: `openid profile email offline_access ${apiScope}` },
+        // prompt=login forces the Entra page to challenge for credentials
+        // even when a stale CIAM cookie is present — pairs with the
+        // federated-signout route so "Sign out → Sign in" is always a
+        // fresh credential prompt.
+        params: { scope: `openid profile email offline_access ${apiScope}`, prompt: "login" },
       },
     }),
   ],
