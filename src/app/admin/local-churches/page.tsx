@@ -33,6 +33,17 @@ interface ChurchFull {
   contactEmail: string | null;
   websiteUrl: string | null;
   monthlyCessAmount: number | null;
+  // Expanded profile fields — surfaced by the LC overview as About / Mission
+  // / Vision / Theme / History / At-a-glance.
+  mission: string | null;
+  vision: string | null;
+  themeOfYear: string | null;
+  history: string | null;
+  about: string | null;
+  yearFounded: number | null;
+  denomination: string | null;
+  patronSaint: string | null;
+  motto: string | null;
 }
 
 export default function AdminLocalChurchesPage() {
@@ -89,6 +100,15 @@ function AdminLocalChurchesInner() {
         contactEmail: pub.contactEmail ?? null,
         websiteUrl: pub.websiteUrl ?? null,
         monthlyCessAmount: pub.monthlyCessAmount ?? null,
+        mission: pub.mission ?? null,
+        vision: pub.vision ?? null,
+        themeOfYear: pub.themeOfYear ?? null,
+        history: pub.history ?? null,
+        about: pub.about ?? null,
+        yearFounded: pub.yearFounded ?? null,
+        denomination: pub.denomination ?? null,
+        patronSaint: pub.patronSaint ?? null,
+        motto: pub.motto ?? null,
       });
     } catch (e) {
       setError((e as Error).message);
@@ -252,6 +272,93 @@ function AdminLocalChurchesInner() {
                   How much this church remits to the diocese each month. Cess submissions colour-code green/red against this.
                 </p>
               </label>
+
+              {/* Profile — long-form sections surfaced on the LC overview. All
+                  nullable so the page still renders cleanly when an admin
+                  hasn't filled them in. */}
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-base font-bold text-red-900 mb-3">Profile</h3>
+                <div className="space-y-3">
+                  <label className="block">
+                    <span className="text-sm text-gray-600">About</span>
+                    <textarea
+                      rows={6}
+                      placeholder="A longer narrative about the church — separate from the short description above."
+                      value={editing.about ?? ""}
+                      onChange={e => setEditing({ ...editing, about: e.target.value || null })}
+                      className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Mission</span>
+                    <textarea
+                      rows={3}
+                      placeholder="e.g. To make disciples of all nations through worship, fellowship, and service."
+                      value={editing.mission ?? ""}
+                      onChange={e => setEditing({ ...editing, mission: e.target.value || null })}
+                      className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Vision</span>
+                    <textarea
+                      rows={3}
+                      placeholder="e.g. A Christ-centred community impacting our nation for the Kingdom of God."
+                      value={editing.vision ?? ""}
+                      onChange={e => setEditing({ ...editing, vision: e.target.value || null })}
+                      className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
+                    />
+                  </label>
+
+                  <Field label="Theme of the year"
+                    placeholder="A single sentence — shown as a yellow banner on the overview."
+                    value={editing.themeOfYear ?? ""}
+                    onChange={v => setEditing({ ...editing, themeOfYear: v || null })} />
+
+                  <label className="block">
+                    <span className="text-sm text-gray-600">History</span>
+                    <textarea
+                      rows={6}
+                      placeholder="The story of the church — founding, milestones, key seasons."
+                      value={editing.history ?? ""}
+                      onChange={e => setEditing({ ...editing, history: e.target.value || null })}
+                      className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Year founded</span>
+                    <input
+                      type="number"
+                      min="1900"
+                      max={new Date().getFullYear()}
+                      step="1"
+                      placeholder="e.g. 1965"
+                      value={editing.yearFounded ?? ""}
+                      onChange={e => setEditing({
+                        ...editing,
+                        yearFounded: e.target.value === "" ? null : Number(e.target.value),
+                      })}
+                      className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
+                    />
+                  </label>
+
+                  <Field label="Denomination"
+                    placeholder="AIPCA"
+                    hint="Defaults to AIPCA on the front-end; override here if this LC is part of a different body."
+                    value={editing.denomination ?? ""}
+                    onChange={v => setEditing({ ...editing, denomination: v || null })} />
+                  <Field label="Patron saint"
+                    value={editing.patronSaint ?? ""}
+                    onChange={v => setEditing({ ...editing, patronSaint: v || null })} />
+                  <Field label="Motto"
+                    placeholder="A short rallying phrase the church identifies with."
+                    value={editing.motto ?? ""}
+                    onChange={v => setEditing({ ...editing, motto: v || null })} />
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 mt-6">

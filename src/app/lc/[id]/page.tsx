@@ -23,6 +23,18 @@ interface LcDetail {
   contactEmail: string | null;
   websiteUrl: string | null;
   monthlyCessAmount: number | null;
+  // Expanded profile fields — each one is nullable; the overview renders
+  // friendly fallback copy when they're unset so the page still looks
+  // complete for a brand-new LC.
+  mission: string | null;
+  vision: string | null;
+  themeOfYear: string | null;
+  history: string | null;
+  about: string | null;
+  yearFounded: number | null;
+  denomination: string | null;
+  patronSaint: string | null;
+  motto: string | null;
 }
 
 function formatKes(amount: number | null | undefined): string {
@@ -174,6 +186,88 @@ export default function LcOverviewPage() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* Expanded profile — About, Mission/Vision, Theme, History, At-a-glance.
+            Each section renders a friendly fallback when the field is unset so
+            the page still feels complete for a fresh LC. */}
+        <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-2xl font-bold text-red-900 mb-3">About</h2>
+          {lc.about ? (
+            <p className="text-gray-700 leading-relaxed whitespace-pre-line">{lc.about}</p>
+          ) : (
+            <p className="text-gray-400 italic">About this church is being added.</p>
+          )}
+        </section>
+
+        <section className="grid md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-bold text-red-900 mb-3">Mission</h2>
+            {lc.mission ? (
+              <p className="text-gray-700 leading-relaxed whitespace-pre-line">{lc.mission}</p>
+            ) : (
+              <p className="text-gray-400 italic">Mission statement to be published.</p>
+            )}
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-bold text-red-900 mb-3">Vision</h2>
+            {lc.vision ? (
+              <p className="text-gray-700 leading-relaxed whitespace-pre-line">{lc.vision}</p>
+            ) : (
+              <p className="text-gray-400 italic">Vision statement to be published.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="bg-yellow-100 border-l-4 border-yellow-400 rounded-r-lg px-6 py-4">
+          <p className="text-xs uppercase tracking-widest text-yellow-800 font-semibold mb-1">
+            Theme of the year
+          </p>
+          {lc.themeOfYear ? (
+            <p className="text-yellow-900 text-lg font-medium italic">&ldquo;{lc.themeOfYear}&rdquo;</p>
+          ) : (
+            <p className="text-yellow-800/70 italic">No theme set for this year.</p>
+          )}
+        </section>
+
+        <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-2xl font-bold text-red-900 mb-3">Our history</h2>
+          {lc.history ? (
+            <p className="text-gray-700 leading-relaxed whitespace-pre-line">{lc.history}</p>
+          ) : (
+            <p className="text-gray-400 italic">Our story will be added here soon.</p>
+          )}
+        </section>
+
+        {/* At a glance — small fact box. Renders the rows that are set; if
+            every row is empty we still show the card so the layout stays
+            balanced and the admin sees where the values will go. */}
+        <section className="bg-gray-50 rounded-lg border border-gray-200 p-6 max-w-md">
+          <h2 className="text-lg font-bold text-red-900 mb-3">At a glance</h2>
+          {(() => {
+            const facts: Array<{ label: string; value: string }> = [];
+            if (lc.yearFounded != null) facts.push({ label: "Founded", value: String(lc.yearFounded) });
+            if (lc.denomination) facts.push({ label: "Denomination", value: lc.denomination });
+            if (lc.patronSaint) facts.push({ label: "Patron saint", value: lc.patronSaint });
+            if (lc.motto) facts.push({ label: "Motto", value: lc.motto });
+            if (facts.length === 0) {
+              return (
+                <p className="text-gray-400 italic text-sm">
+                  Quick facts (year founded, denomination, patron saint, motto) will appear here.
+                </p>
+              );
+            }
+            return (
+              <dl className="space-y-2 text-sm">
+                {facts.map(f => (
+                  <div key={f.label} className="flex justify-between gap-4 border-b border-gray-200 last:border-0 pb-2 last:pb-0">
+                    <dt className="text-gray-500">{f.label}</dt>
+                    <dd className="font-medium text-right">{f.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            );
+          })()}
         </section>
 
         {/* Vestry — Archdeacons, Pastors, Deacons, Church Leaders. Clicks
