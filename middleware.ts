@@ -46,10 +46,16 @@ function startsWithAny(path: string, prefixes: string[]): boolean {
 // Mirrors AppPolicy:RequireVerification on the backend. When false, the
 // middleware lets any signed-in user reach any route — no /signup/complete
 // gate. Backend handlers honour the same flag so 403s also disappear.
-// Default true (safe). Flip via NEXT_PUBLIC_REQUIRE_VERIFICATION=false in
-// .env.production (provision.ps1 wires this from REQUIRE_VERIFICATION in
-// .env.deploy).
-const REQUIRE_VERIFICATION = process.env.NEXT_PUBLIC_REQUIRE_VERIFICATION !== "false";
+//
+// TEMPORARY: defaulted to FALSE while the diocesan workflow beds in. This
+// pairs with the backend opening in BishopController + BishopTransfersController
+// so signed-in test users can reach every page (Transfers, Diocese overview,
+// LC sub-tabs) without needing the LC-official verification flow first.
+//
+// To restore the production behaviour: change the default below back to
+// `!== "false"` (or explicitly set NEXT_PUBLIC_REQUIRE_VERIFICATION=true
+// in .env.production / .env.deploy → REQUIRE_VERIFICATION=true).
+const REQUIRE_VERIFICATION = process.env.NEXT_PUBLIC_REQUIRE_VERIFICATION === "true";
 
 export default auth(async (req) => {
   const { pathname } = req.nextUrl;
