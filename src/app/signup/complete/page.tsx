@@ -6,15 +6,17 @@ import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
 import { LocalChurchPicker, LcLookup } from "@/components/LocalChurchPicker";
 
-// Position enum mirrors backend Models.Position.
+// Position enum mirrors backend Models.Position. Lay board officers only —
+// clergy roles live in ClergyRanks, not here.
 const POSITION_OPTIONS = [
-  { value: 1, label: "Pastor" },
-  { value: 2, label: "Treasurer" },
-  { value: 3, label: "Chairperson" },
-  { value: 4, label: "Secretary" },
-  { value: 5, label: "Vice Chair" },
-  { value: 6, label: "Member" },
-  { value: 7, label: "Other" },
+  { value: 1, label: "Chairperson" },
+  { value: 2, label: "Vice Chairperson" },
+  { value: 3, label: "Chairlady" },
+  { value: 4, label: "Vice Chairlady" },
+  { value: 5, label: "Secretary" },
+  { value: 6, label: "Vice Secretary" },
+  { value: 7, label: "Treasurer" },
+  { value: 8, label: "Vice Treasurer" },
 ];
 
 const STATUS = {
@@ -78,9 +80,9 @@ export default function SignupCompletePage() {
   const [rejectionReason, setRejectionReason] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Profile form state.
-  const [position, setPosition] = useState<number>(2);
-  const [positionDetail, setPositionDetail] = useState("");
+  // Profile form state. Default position is Chairperson (the highest-trust
+  // board role and the most common signup case).
+  const [position, setPosition] = useState<number>(1);
   const [nationalId, setNationalId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState(1);
@@ -131,7 +133,6 @@ export default function SignupCompletePage() {
   async function submitProfile() {
     if (!token) return;
     if (!nationalId.trim()) { setError("National ID is required."); return; }
-    if (position === 7 && !positionDetail.trim()) { setError("Please describe your position."); return; }
     if (!phoneMasked && !phoneNumber.trim()) {
       setError("Phone number is required (Microsoft didn't share one with us, so we need yours here).");
       return;
@@ -142,7 +143,6 @@ export default function SignupCompletePage() {
         method: "POST",
         json: {
           position,
-          positionDetail: positionDetail || undefined,
           nationalId,
           phoneNumber: phoneNumber || undefined,
           preferredLanguage,
@@ -230,17 +230,6 @@ export default function SignupCompletePage() {
                 {POSITION_OPTIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </div>
-            {position === 7 && (
-              <div>
-                <label className="block text-sm font-medium mb-1">Position detail</label>
-                <input
-                  type="text"
-                  value={positionDetail}
-                  onChange={(e) => setPositionDetail(e.target.value)}
-                  className="w-full border px-3 py-2 rounded"
-                />
-              </div>
-            )}
             <div>
               <label className="block text-sm font-medium mb-1">National ID number</label>
               <input

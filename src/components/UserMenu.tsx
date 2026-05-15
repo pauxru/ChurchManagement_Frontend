@@ -4,11 +4,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { apiFetch } from "@/lib/apiClient";
 
+// How often we poll the unread-count endpoint while the user is signed in.
+// 60s is a deliberate trade-off: anything faster wakes the server too often
+// for a self-service feature; anything slower makes the red dot feel stale
+// after a Bishop schedules a transfer.
+const UNREAD_POLL_MS = 60_000;
+
+// Mirrors backend Models/Enums.cs Position. Lay board officers only —
+// clergy roles live in ClergyRanks, not here.
 const POSITION_LABEL: Record<number, string> = {
-  1: "Pastor", 2: "Treasurer", 3: "Chairperson",
-  4: "Secretary", 5: "Vice Chair", 6: "Member", 7: "Other",
+  1: "Chairperson",
+  2: "Vice Chairperson",
+  3: "Chairlady",
+  4: "Vice Chairlady",
+  5: "Secretary",
+  6: "Vice Secretary",
+  7: "Treasurer",
+  8: "Vice Treasurer",
 };
 const STATUS_LABEL: Record<number, string> = {
   1: "Awaiting profile", 2: "Awaiting LC selection", 3: "Awaiting OTP",
@@ -53,7 +68,33 @@ export function UserMenu({ size = 36 }: Props) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const accessToken = session?.accessToken;
+
+  // Pull the unread count when signed in. Wrapped in useCallback so the
+  // polling effect can re-use the same instance and we could also call it
+  // imperatively later (e.g. after the menu opens) if we wanted to refresh
+  // without waiting for the next tick.
+  const refreshUnread = useCallback(async () => {
+    if (!accessToken) return;
+    try {
+      const data = await apiFetch<{ count: number }>("/Notifications/unread-count", accessToken);
+      setUnreadCount(data?.count ?? 0);
+    } catch {
+      // Swallow errors — a transient API hiccup shouldn't yell at the user
+      // every minute. apiFetch already handles 401 by bouncing to sign-in.
+    }
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (status === "loading" || !accessToken) return;
+    // Fire immediately on sign-in / token change, then on a 60s interval.
+    refreshUnread();
+    const handle = window.setInterval(refreshUnread, UNREAD_POLL_MS);
+    return () => window.clearInterval(handle);
+  }, [accessToken, status, refreshUnread]);
 
   // Close on Escape + click-outside. Implemented inline (no extra dep) by
   // listening on the document and checking whether the click landed inside
@@ -103,6 +144,7 @@ export function UserMenu({ size = 36 }: Props) {
   const entraPhotoUrl = !userPhotoUrl ? user.image || null : null;
   const isAdmin = (user.roles ?? []).includes("Admin");
   const isVerified = officials.some(o => o.status === 4);
+  const hasUnread = unreadCount > 0;
 
   return (
     <div ref={containerRef} className="relative">
@@ -110,37 +152,49 @@ export function UserMenu({ size = 36 }: Props) {
         type="button"
         onClick={() => setOpen(v => !v)}
         className="flex items-center gap-2 hover:opacity-90"
-        aria-label="Open profile menu"
+        aria-label={hasUnread
+          ? `Open profile menu, ${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
+          : "Open profile menu"}
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        {entraPhotoUrl ? (
-          <Image
-            src={entraPhotoUrl}
-            alt={displayName}
-            width={size}
-            height={size}
-            className="rounded-full object-cover"
-            style={{ width: size, height: size }}
-          />
-        ) : userPhotoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={userPhotoUrl}
-            alt={displayName}
-            width={size}
-            height={size}
-            className="rounded-full object-cover"
-            style={{ width: size, height: size }}
-          />
-        ) : (
-          <span
-            className={`inline-flex items-center justify-center rounded-full text-white font-semibold ${avatarColor(displayName)}`}
-            style={{ width: size, height: size, fontSize: size * 0.4 }}
-          >
-            {initials(displayName)}
-          </span>
-        )}
+        {/* Wrap the avatar in a positioned span so the unread dot can anchor
+            to its top-right without affecting the button's flex layout. */}
+        <span className="relative inline-flex">
+          {entraPhotoUrl ? (
+            <Image
+              src={entraPhotoUrl}
+              alt={displayName}
+              width={size}
+              height={size}
+              className="rounded-full object-cover"
+              style={{ width: size, height: size }}
+            />
+          ) : userPhotoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={userPhotoUrl}
+              alt={displayName}
+              width={size}
+              height={size}
+              className="rounded-full object-cover"
+              style={{ width: size, height: size }}
+            />
+          ) : (
+            <span
+              className={`inline-flex items-center justify-center rounded-full text-white font-semibold ${avatarColor(displayName)}`}
+              style={{ width: size, height: size, fontSize: size * 0.4 }}
+            >
+              {initials(displayName)}
+            </span>
+          )}
+          {hasUnread && (
+            <span
+              aria-hidden
+              className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-600 ring-2 ring-red-800"
+            />
+          )}
+        </span>
         <span className="hidden sm:inline text-sm">{displayName}</span>
       </button>
 
@@ -205,6 +259,22 @@ export function UserMenu({ size = 36 }: Props) {
 
           {/* Links */}
           <nav className="py-1" role="none">
+            {/* Notifications goes at the top — it's the most actionable
+                entry and the badge mirrors the avatar dot so the menu is
+                self-consistent with what attracted the user's eye. */}
+            <button
+              type="button"
+              onClick={() => { setOpen(false); router.push("/notifications"); }}
+              role="menuitem"
+              className="w-full text-left flex items-center justify-between px-4 py-2 hover:bg-gray-50 text-sm"
+            >
+              <span>Notifications</span>
+              {hasUnread && (
+                <span className="bg-red-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </button>
             {officials.length > 0 && officials[0].localChurchId && (
               <Link
                 href={`/lc/${officials[0].localChurchId}`}

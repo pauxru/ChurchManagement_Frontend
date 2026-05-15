@@ -6,15 +6,17 @@ import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
 import { RoleTier } from "@/auth";
 
-// Mirrors backend Models/Enums.cs.
+// Mirrors backend Models/Enums.cs Position. Lay board officers only —
+// clergy roles live in ClergyRanks, not here.
 const POSITION_LABEL: Record<number, string> = {
-  1: "Pastor",
-  2: "Treasurer",
-  3: "Chairperson",
-  4: "Secretary",
-  5: "Vice Chair",
-  6: "Member",
-  7: "Other",
+  1: "Chairperson",
+  2: "Vice Chairperson",
+  3: "Chairlady",
+  4: "Vice Chairlady",
+  5: "Secretary",
+  6: "Vice Secretary",
+  7: "Treasurer",
+  8: "Vice Treasurer",
 };
 
 interface LeadershipEntry {
