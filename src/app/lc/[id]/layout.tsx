@@ -55,12 +55,6 @@ export default function LcLayout({ children }: { children: React.ReactNode }) {
       <Navbar />
       {hasAccess && info && (
         <header className="bg-white border-b sticky top-[60px] z-30">
-          <div className="container mx-auto px-6 py-3 flex items-center justify-between gap-4">
-            <div>
-              <Link href={base} className="text-sm text-red-700 hover:underline">{info.name}</Link>
-              {info.code && <span className="ml-2 text-xs font-mono text-gray-500">{info.code}</span>}
-            </div>
-          </div>
           <nav className="container mx-auto px-6 overflow-x-auto">
             <ul className="flex gap-1 text-sm">
               {TABS.map((t) => {

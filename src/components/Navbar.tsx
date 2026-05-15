@@ -5,17 +5,17 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { UserMenu } from "./UserMenu";
 import { RolePill } from "./RolePill";
-import { RoleTier } from "@/auth";
 
 const DEFAULT_DIOCESE_ID = process.env.NEXT_PUBLIC_DEFAULT_DIOCESE_ID ?? "1";
 
 export function Navbar() {
   const { data: session, status } = useSession();
   const signedIn = status !== "loading" && !!session?.user;
-  const tier = session?.profile?.roleLabel?.tier ?? 0;
-  // Clergy transfers are a Bishop's-office responsibility — only show the
-  // link to Bishop and above. National admins see it too.
-  const canSeeTransfers = tier >= RoleTier.Bishop;
+  // Transfers link is shown to every signed-in user. The backend
+  // (/Bishop/transfers endpoints + the page itself) gates who can actually
+  // see and edit data; gating the link in the nav meant users with the
+  // right backend access still couldn't find the entry point.
+  const canSeeTransfers = signedIn;
 
   return (
     <nav className="bg-red-800 text-white shadow sticky top-0 z-40">

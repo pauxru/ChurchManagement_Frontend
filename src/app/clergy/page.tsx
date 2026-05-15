@@ -21,7 +21,7 @@ export default async function ClergyPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <Navbar />
-      <main className="container mx-auto px-6 py-10">
+      <main className="container mx-auto px-6 py-10 text-center">
         <h1 className="text-3xl font-bold text-red-900">Clergy</h1>
         <p className="mt-2 text-gray-600">
           {clergy.length} clergy across the diocese, grouped by rank from most

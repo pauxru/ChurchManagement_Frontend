@@ -5,6 +5,28 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { VestryCard, type VestryMember } from "@/components/VestryCard";
+import { apiFetch } from "@/lib/apiClient";
+
+const POSITION_LABEL: Record<number, string> = {
+  1: "Chairperson",
+  2: "Vice Chairperson",
+  3: "Chairlady",
+  4: "Vice Chairlady",
+  5: "Secretary",
+  6: "Vice Secretary",
+  7: "Treasurer",
+  8: "Vice Treasurer",
+};
+
+interface OfficialEntry {
+  id: number;
+  name: string | null;
+  position: number | null;
+  positionDetail: string | null;
+  isActive: boolean;
+  photoUrl: string | null;
+}
+interface LeadershipView { clergy: unknown[]; officials: OfficialEntry[] }
 
 interface LcDetail {
   localChurchId: number;
@@ -60,8 +82,10 @@ export default function LcOverviewPage() {
   const params = useParams<{ id: string }>();
   const lcId = Number(params?.id);
   const { data: session } = useSession();
+  const token = session?.accessToken;
   const [lc, setLc] = useState<LcDetail | null>(null);
   const [vestry, setVestry] = useState<VestryMember[]>([]);
+  const [officials, setOfficials] = useState<OfficialEntry[]>([]);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -78,6 +102,16 @@ export default function LcOverviewPage() {
       .then((v: VestryMember[]) => setVestry(v))
       .catch(() => setVestry([]));
   }, [lcId]);
+
+  // Leadership (elected officials) is gated server-side — only signed-in
+  // users with LC scope see it. Silently swallow 403s so the section just
+  // hides for everyone else.
+  useEffect(() => {
+    if (!lcId || !token) return;
+    apiFetch<LeadershipView>(`/Lc/${lcId}/Leadership`, token)
+      .then(v => setOfficials(v.officials ?? []))
+      .catch(() => setOfficials([]));
+  }, [lcId, token]);
 
   if (notFound) {
     return (
@@ -148,55 +182,80 @@ export default function LcOverviewPage() {
       </header>
 
       <main className="container mx-auto px-6 py-12 space-y-12 max-w-5xl">
-        {/* About + Service Times row */}
-        <section className="grid md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-2xl font-bold text-red-900 mb-3">About us</h2>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-              {lc.description || (
-                <span className="text-gray-400 italic">
-                  This church hasn&apos;t added a description yet.
-                  {signedIn && <> Admins can add one via <Link href={`/admin/local-churches`} className="underline text-red-700">/admin/local-churches</Link>.</>}
-                </span>
-              )}
-            </p>
-            {lc.inChargePastorName && (
-              <p className="mt-4 text-sm">
-                <span className="text-gray-500">In-charge pastor: </span>
-                <span className="font-semibold">{lc.inChargePastorName}</span>
-              </p>
-            )}
-          </div>
-          <div className="space-y-4">
-            <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-6">
-              <h2 className="text-lg font-bold text-yellow-900 mb-3">Service times</h2>
-              {lc.serviceTimes ? (
-                <p className="text-yellow-900 whitespace-pre-line">{lc.serviceTimes}</p>
-              ) : (
-                <p className="text-yellow-700/70 italic text-sm">Not yet listed.</p>
-              )}
-            </div>
-            <div className="bg-red-50 rounded-lg border border-red-200 p-6">
-              <h2 className="text-lg font-bold text-red-900 mb-2">Monthly cess</h2>
-              <p className="text-2xl font-bold text-red-800">{formatKes(lc.monthlyCessAmount)}</p>
-              <p className="text-xs text-red-700/70 mt-1">
-                {lc.monthlyCessAmount == null
-                  ? "Awaiting Bishop's allocation."
-                  : "Set by the diocesan office."}
+        {vestry.length > 0 && (
+          <section>
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="text-2xl font-bold text-red-900">Vestry</h2>
+              <p className="text-sm text-gray-500">
+                Parish clergy serving this Local Church · {vestry.length}
               </p>
             </div>
-          </div>
-        </section>
+            <div className="mb-4 flex flex-wrap gap-x-5 gap-y-1 items-center text-xs text-gray-600">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-yellow-500" /> Archdeacon
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-900" /> Pastor
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Deacon
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Church Leader
+              </span>
+            </div>
+            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {vestry.map((m) => (
+                <li key={m.clergyId}>
+                  <VestryCard member={m} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-        {/* Expanded profile — About, Mission/Vision, Theme, History, At-a-glance.
-            Each section renders a friendly fallback when the field is unset so
-            the page still feels complete for a fresh LC. */}
+        {officials.length > 0 && (
+          <section>
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="text-2xl font-bold text-red-900">Leadership</h2>
+              <p className="text-sm text-gray-500">
+                Elected officials · {officials.length}
+              </p>
+            </div>
+            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {officials.map((o) => (
+                <li key={o.id} className={`bg-white border border-gray-200 rounded-xl px-4 pt-6 pb-4 text-center ${o.isActive ? "" : "opacity-60"}`}>
+                  {o.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={o.photoUrl} alt={o.name ?? ""} className="mx-auto w-24 h-24 rounded-full object-cover ring-4 ring-white shadow" />
+                  ) : (
+                    <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-red-700 to-red-900 text-white flex items-center justify-center font-bold text-2xl ring-4 ring-white shadow">
+                      {(o.name ?? "?").trim().slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
+                  <h4 className="mt-3 font-semibold text-sm">{o.name ?? "Unnamed official"}</h4>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {o.position != null ? POSITION_LABEL[o.position] ?? "Member" : "Unassigned"}
+                    {o.positionDetail ? ` (${o.positionDetail})` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-2xl font-bold text-red-900 mb-3">About</h2>
-          {lc.about ? (
-            <p className="text-gray-700 leading-relaxed whitespace-pre-line">{lc.about}</p>
+          {lc.about || lc.description ? (
+            <p className="text-gray-700 leading-relaxed whitespace-pre-line">{lc.about || lc.description}</p>
           ) : (
             <p className="text-gray-400 italic">About this church is being added.</p>
+          )}
+          {lc.inChargePastorName && (
+            <p className="mt-4 text-sm">
+              <span className="text-gray-500">In-charge pastor: </span>
+              <span className="font-semibold">{lc.inChargePastorName}</span>
+            </p>
           )}
         </section>
 
@@ -239,78 +298,53 @@ export default function LcOverviewPage() {
           )}
         </section>
 
-        {/* At a glance — small fact box. Renders the rows that are set; if
-            every row is empty we still show the card so the layout stays
-            balanced and the admin sees where the values will go. */}
-        <section className="bg-gray-50 rounded-lg border border-gray-200 p-6 max-w-md">
-          <h2 className="text-lg font-bold text-red-900 mb-3">At a glance</h2>
-          {(() => {
-            const facts: Array<{ label: string; value: string }> = [];
-            if (lc.yearFounded != null) facts.push({ label: "Founded", value: String(lc.yearFounded) });
-            if (lc.denomination) facts.push({ label: "Denomination", value: lc.denomination });
-            if (lc.patronSaint) facts.push({ label: "Patron saint", value: lc.patronSaint });
-            if (lc.motto) facts.push({ label: "Motto", value: lc.motto });
-            if (facts.length === 0) {
+        <section className="grid md:grid-cols-3 gap-6">
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-bold text-red-900 mb-3">At a glance</h2>
+            {(() => {
+              const facts: Array<{ label: string; value: string }> = [];
+              if (lc.yearFounded != null) facts.push({ label: "Founded", value: String(lc.yearFounded) });
+              if (lc.denomination) facts.push({ label: "Denomination", value: lc.denomination });
+              if (lc.patronSaint) facts.push({ label: "Patron saint", value: lc.patronSaint });
+              if (lc.motto) facts.push({ label: "Motto", value: lc.motto });
+              if (facts.length === 0) {
+                return (
+                  <p className="text-gray-400 italic text-sm">
+                    Quick facts (year founded, denomination, patron saint, motto) will appear here.
+                  </p>
+                );
+              }
               return (
-                <p className="text-gray-400 italic text-sm">
-                  Quick facts (year founded, denomination, patron saint, motto) will appear here.
-                </p>
+                <dl className="space-y-2 text-sm">
+                  {facts.map(f => (
+                    <div key={f.label} className="flex justify-between gap-4 border-b border-gray-200 last:border-0 pb-2 last:pb-0">
+                      <dt className="text-gray-500">{f.label}</dt>
+                      <dd className="font-medium text-right">{f.value}</dd>
+                    </div>
+                  ))}
+                </dl>
               );
-            }
-            return (
-              <dl className="space-y-2 text-sm">
-                {facts.map(f => (
-                  <div key={f.label} className="flex justify-between gap-4 border-b border-gray-200 last:border-0 pb-2 last:pb-0">
-                    <dt className="text-gray-500">{f.label}</dt>
-                    <dd className="font-medium text-right">{f.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            );
-          })()}
+            })()}
+          </div>
+          <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-6">
+            <h2 className="text-lg font-bold text-yellow-900 mb-3">Service times</h2>
+            {lc.serviceTimes ? (
+              <p className="text-yellow-900 whitespace-pre-line">{lc.serviceTimes}</p>
+            ) : (
+              <p className="text-yellow-700/70 italic text-sm">Not yet listed.</p>
+            )}
+          </div>
+          <div className="bg-red-50 rounded-lg border border-red-200 p-6">
+            <h2 className="text-lg font-bold text-red-900 mb-2">Monthly cess</h2>
+            <p className="text-2xl font-bold text-red-800">{formatKes(lc.monthlyCessAmount)}</p>
+            <p className="text-xs text-red-700/70 mt-1">
+              {lc.monthlyCessAmount == null
+                ? "Awaiting Bishop's allocation."
+                : "Set by the diocesan office."}
+            </p>
+          </div>
         </section>
 
-        {/* Vestry — Archdeacons, Pastors, Deacons, Church Leaders. Clicks
-            into /clergy/[id]. Hidden when the LC has no clergy yet. */}
-        {vestry.length > 0 && (
-          <section>
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-2xl font-bold text-red-900">Vestry</h2>
-              <p className="text-sm text-gray-500">
-                Parish clergy serving this Local Church · {vestry.length}
-              </p>
-            </div>
-            {/* Rank colour legend — keeps the user oriented while scanning
-                the circles. Dots are the same hues used in clergyColors.ts. */}
-            <div className="mb-4 flex flex-wrap gap-x-5 gap-y-1 items-center text-xs text-gray-600">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-yellow-500" /> Archdeacon
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-blue-900" /> Pastor
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Deacon
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-gray-900" /> Church Leader
-              </span>
-              <span className="inline-flex items-center gap-1.5 ml-auto">
-                <span className="inline-block bg-yellow-100 text-yellow-900 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full">In-charge</span>
-                <span>indicates the lead clergy</span>
-              </span>
-            </div>
-            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {vestry.map((m) => (
-                <li key={m.clergyId}>
-                  <VestryCard member={m} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* Contact + Worship cards */}
         <section className="grid md:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-bold text-red-900 mb-3">Visit us</h2>

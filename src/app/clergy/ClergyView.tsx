@@ -271,14 +271,14 @@ export function ClergyView({ clergy }: Props) {
                           <img
                             src={c.photoUrl}
                             alt={c.clergyName}
-                            className="mx-auto w-20 h-20 rounded-full object-cover ring-4 ring-white shadow"
+                            className="mx-auto w-32 h-32 rounded-full object-cover ring-4 ring-white shadow"
                           />
                         ) : (
-                          <div className={`mx-auto w-20 h-20 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center font-bold text-xl ring-4 ring-white shadow`}>
+                          <div className={`mx-auto w-32 h-32 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center font-bold text-4xl ring-4 ring-white shadow`}>
                             {initials(c.clergyName)}
                           </div>
                         )}
-                        <h3 className="mt-3 font-semibold">
+                        <h3 className="mt-4 font-semibold text-base">
                           {c.salutation ? `${c.salutation}. ` : ""}{c.clergyName}
                         </h3>
                         {c.assignmentName && (

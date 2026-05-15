@@ -115,19 +115,19 @@ function AdminLocalChurchesInner() {
     }
   }, []);
 
-  // Auto-open the editor modal when arriving here from /lc/[id]'s pen icon
-  // (which links to /admin/local-churches?focus=<id>). We drop the param
-  // afterwards so back-navigation doesn't re-trigger.
+  // Auto-open the editor when arriving here from /lc/[id]'s pen icon
+  // (which links to /admin/local-churches?focus=<id>). We KEEP the param
+  // in the URL so the page renders as "single-church edit" instead of
+  // "list of every church plus a modal" — operators were confused by
+  // seeing the full list under the modal when they'd asked for one church.
+  const focusParam = searchParams?.get("focus");
+  const focusId = focusParam && Number.isFinite(Number(focusParam)) ? Number(focusParam) : null;
+
   useEffect(() => {
-    if (focusHandled) return;
-    const focus = searchParams?.get("focus");
-    if (!focus) return;
-    const id = Number(focus);
-    if (!Number.isFinite(id) || id <= 0) return;
+    if (focusHandled || !focusId || focusId <= 0) return;
     setFocusHandled(true);
-    openEditor(id);
-    router.replace("/admin/local-churches");
-  }, [searchParams, openEditor, router, focusHandled]);
+    openEditor(focusId);
+  }, [focusId, openEditor, focusHandled]);
 
   async function save() {
     if (!editing) return;
@@ -138,6 +138,10 @@ function AdminLocalChurchesInner() {
         method: "PUT",
         json: editing,
       });
+      if (focusId) {
+        router.push(`/lc/${focusId}`);
+        return;
+      }
       setEditing(null);
       const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
       const refreshed = await fetch(`${base}/public/local-churches`);
@@ -160,9 +164,12 @@ function AdminLocalChurchesInner() {
       </div>
 
       {error && <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded mb-4">{error}</div>}
-      {!rows && <p className="text-gray-500">Loading churches…</p>}
+      {!rows && !focusId && <p className="text-gray-500">Loading churches…</p>}
 
-      {rows && rows.length > 0 && (
+      {/* Hide the full table when the URL pins us to one church
+          (e.g. /admin/local-churches?focus=12). The edit modal below
+          is the whole UI in that mode. */}
+      {!focusId && rows && rows.length > 0 && (
         <table className="w-full border border-gray-200 rounded overflow-hidden">
           <thead className="bg-gray-50 text-sm">
             <tr className="text-left">
@@ -202,7 +209,7 @@ function AdminLocalChurchesInner() {
       )}
 
       {editing && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={() => setEditing(null)}>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={() => focusId ? router.push(`/lc/${focusId}`) : setEditing(null)}>
           <div
             className="bg-white rounded-lg shadow-xl w-full max-w-2xl mt-8 p-6"
             onClick={e => e.stopPropagation()}
@@ -363,7 +370,7 @@ function AdminLocalChurchesInner() {
 
             <div className="flex justify-end gap-3 mt-6">
               <button
-                onClick={() => setEditing(null)}
+                onClick={() => focusId ? router.push(`/lc/${focusId}`) : setEditing(null)}
                 className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
                 disabled={saving}
               >
