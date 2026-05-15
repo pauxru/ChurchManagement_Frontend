@@ -164,6 +164,11 @@ export default function LcOverviewPage() {
         )}
         <div className="relative container mx-auto px-6 py-20 text-center">
           <div className="flex flex-col items-center gap-4">
+            {lc.localChurchCode && (
+              <p className="uppercase tracking-widest text-yellow-300 text-xs font-semibold">
+                {lc.localChurchCode}
+              </p>
+            )}
             {lc.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -177,11 +182,6 @@ export default function LcOverviewPage() {
               </div>
             )}
             <p className="text-yellow-200 italic text-sm md:text-base">Africa Independent Pentecostal Church of Africa (A.I.P.C.A)</p>
-            {lc.localChurchCode && (
-              <p className="uppercase tracking-widest text-yellow-300 text-xs font-semibold">
-                {lc.localChurchCode}
-              </p>
-            )}
             <h1 className="text-4xl md:text-5xl font-extrabold">{displayLcName(lc.localChurchName)}</h1>
             {(lc.parishName || lc.dioceseName) && (
               <p className="text-lg text-red-100">
