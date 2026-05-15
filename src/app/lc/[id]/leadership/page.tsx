@@ -7,16 +7,6 @@ import { apiFetch } from "@/lib/apiClient";
 import { RoleTier } from "@/auth";
 
 // Mirrors backend Models/Enums.cs.
-const CLERGY_RANK_LABEL: Record<number, string> = {
-  1: "Evangelist",
-  2: "Church Leader",
-  3: "Deacon",
-  4: "Pastor",
-  5: "Arch Deacon",
-  6: "Bishop",
-  7: "Arch Bishop",
-  8: "Presiding Archbishop",
-};
 const POSITION_LABEL: Record<number, string> = {
   1: "Pastor",
   2: "Treasurer",
@@ -65,15 +55,6 @@ export default function LeadershipPage() {
   }, [lcId, token, showInactive]);
   useEffect(() => { refresh(); }, [refresh]);
 
-  async function softDeleteClergy(id: number) {
-    if (!token) return;
-    if (!confirm("Deactivate this clergy member?")) return;
-    try {
-      await apiFetch(`/Admin/clergy/${id}`, token, { method: "DELETE" });
-      refresh();
-    } catch (e) { setError((e as Error).message); }
-  }
-
   if (!view) return <div className="container mx-auto px-6 py-6">{error ?? "Loading..."}</div>;
 
   return (
@@ -95,34 +76,8 @@ export default function LeadershipPage() {
 
       {error && <div className="text-red-700">{error}</div>}
 
-      <section className="bg-white shadow rounded">
-        <h3 className="font-semibold px-4 py-3 border-b">Clergy at this LC</h3>
-        {view.clergy.length === 0 && <p className="px-4 py-4 text-gray-500">No clergy stationed here.</p>}
-        <ul>
-          {view.clergy.map((c) => (
-            <li key={`c-${c.id}`} className={`px-4 py-3 border-t flex items-center gap-3 ${c.isActive ? "" : "opacity-60"}`}>
-              {c.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.photoUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
-                  {(c.name ?? "?").slice(0, 1)}
-                </div>
-              )}
-              <div className="flex-1">
-                <div className="font-medium">{c.name}</div>
-                <div className="text-xs text-gray-500">{c.rank != null ? CLERGY_RANK_LABEL[c.rank] : ""}</div>
-              </div>
-              <span className={`px-2 py-1 rounded text-xs ${c.isActive ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"}`}>
-                {c.isActive ? "Active" : "Inactive"}
-              </span>
-              {canManage && c.isActive && (
-                <button onClick={() => softDeleteClergy(c.id)} className="text-red-700 underline text-sm">Remove</button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* Clergy section moved to the Vestry on the LC overview — this tab
+          now focuses purely on the elected lay board (officials). */}
 
       <section className="bg-white shadow rounded">
         <h3 className="font-semibold px-4 py-3 border-b">Local Church Officials</h3>

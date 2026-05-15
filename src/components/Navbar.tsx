@@ -5,10 +5,17 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { UserMenu } from "./UserMenu";
 import { RolePill } from "./RolePill";
+import { RoleTier } from "@/auth";
+
+const DEFAULT_DIOCESE_ID = process.env.NEXT_PUBLIC_DEFAULT_DIOCESE_ID ?? "1";
 
 export function Navbar() {
   const { data: session, status } = useSession();
   const signedIn = status !== "loading" && !!session?.user;
+  const tier = session?.profile?.roleLabel?.tier ?? 0;
+  // Clergy transfers are a Bishop's-office responsibility — only show the
+  // link to Bishop and above. National admins see it too.
+  const canSeeTransfers = tier >= RoleTier.Bishop;
 
   return (
     <nav className="bg-red-800 text-white shadow sticky top-0 z-40">
@@ -24,6 +31,16 @@ export function Navbar() {
               <li><Link href="/clergy" className="px-3 py-2 hover:bg-white/10 rounded">Clergy</Link></li>
               <li><Link href="/events" className="px-3 py-2 hover:bg-white/10 rounded">Events</Link></li>
               <li><Link href="/announcements" className="px-3 py-2 hover:bg-white/10 rounded">Announcements</Link></li>
+              {canSeeTransfers && (
+                <li>
+                  <Link
+                    href={`/diocese/${DEFAULT_DIOCESE_ID}/transfers`}
+                    className="px-3 py-2 hover:bg-white/10 rounded"
+                  >
+                    Transfers
+                  </Link>
+                </li>
+              )}
             </>
           ) : (
             <li><Link href="/near-me" className="px-3 py-2 hover:bg-white/10 rounded">AIPCA Church Near Me</Link></li>
