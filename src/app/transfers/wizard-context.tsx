@@ -48,6 +48,10 @@ export interface ClergyOnBoard {
   ordinationDate: string | null;       // ISO date for "first-assigned" tie-breaker
   currentLevel: Level;
   currentLevelId: number;
+  // Canonical in-charge status from the server. Lets the pages keep the
+  // current lead anchored when the bishop drags a new clergy into an
+  // already-led parish — new arrivals never displace an existing lead.
+  currentIsInCharge: boolean;
 }
 
 // Server contract for a single staged move. Matches the
@@ -96,96 +100,6 @@ export function useWizard(): Ctx {
   const ctx = useContext(WizardContext);
   if (!ctx) throw new Error("useWizard must be used within a WizardProvider");
   return ctx;
-}
-
-// --- auto in-charge rule ---
-
-// Returns the canonical sort order for picking a default in-charge when none
-// is set: oldest ordination first (longest-serving), tie-break by clergyId.
-// Caller passes the lookup map so we don't have to thread it through every
-// reducer call.
-function sortKey(a: ClergyOnBoard, b: ClergyOnBoard): number {
-  // Missing ordination dates sort last so they don't outrank ordained clergy.
-  const ad = a.ordinationDate ? Date.parse(a.ordinationDate) : Number.POSITIVE_INFINITY;
-  const bd = b.ordinationDate ? Date.parse(b.ordinationDate) : Number.POSITIVE_INFINITY;
-  if (ad !== bd) return ad - bd;
-  return a.clergyId - b.clergyId;
-}
-
-// Apply the page-1 (parish) auto-in-charge rule across the drafts array.
-// Group by toLevelId; for each group, if at least one is flagged keep them
-// alone; otherwise flag the first by sortKey. Singleton groups always have
-// their one clergy as in-charge.
-function applyParishAutoInCharge(
-  drafts: TransferDraft[],
-  clergyById: Map<number, ClergyOnBoard>,
-): TransferDraft[] {
-  const groups = new Map<number, TransferDraft[]>();
-  for (const d of drafts) {
-    if (!groups.has(d.toLevelId)) groups.set(d.toLevelId, []);
-    groups.get(d.toLevelId)!.push(d);
-  }
-  for (const group of groups.values()) {
-    const hasInCharge = group.some((d) => d.isInCharge);
-    if (hasInCharge) continue;
-    if (group.length === 0) continue;
-    if (group.length === 1) {
-      group[0].isInCharge = true;
-      continue;
-    }
-    // Resolve clergy meta for sorting.
-    const sorted = [...group].sort((a, b) => {
-      const ca = clergyById.get(a.clergyId);
-      const cb = clergyById.get(b.clergyId);
-      if (!ca || !cb) return a.clergyId - b.clergyId;
-      return sortKey(ca, cb);
-    });
-    const winnerId = sorted[0].clergyId;
-    for (const d of group) d.isInCharge = d.clergyId === winnerId;
-  }
-  return drafts;
-}
-
-// Apply the page-2 (LC) rule: same as parish but with the Deacon-outranks-CL
-// preference. Mixed groups → first Deacon wins; pure-Deacon → first by sort
-// key; pure-CL → first by sort key.
-function applyLcAutoInCharge(
-  drafts: TransferDraft[],
-  clergyById: Map<number, ClergyOnBoard>,
-): TransferDraft[] {
-  const groups = new Map<number, TransferDraft[]>();
-  for (const d of drafts) {
-    if (!groups.has(d.toLevelId)) groups.set(d.toLevelId, []);
-    groups.get(d.toLevelId)!.push(d);
-  }
-  for (const group of groups.values()) {
-    const hasInCharge = group.some((d) => d.isInCharge);
-    if (hasInCharge) continue;
-    if (group.length === 0) continue;
-    if (group.length === 1) {
-      group[0].isInCharge = true;
-      continue;
-    }
-    // Partition into deacons vs the rest. If any Deacon exists they take
-    // precedence; otherwise fall back to sort across the full group.
-    const deacons: TransferDraft[] = [];
-    const others: TransferDraft[] = [];
-    for (const d of group) {
-      const meta = clergyById.get(d.clergyId);
-      if (meta && meta.rankLabel === "Deacon") deacons.push(d);
-      else others.push(d);
-    }
-    const pool = deacons.length > 0 ? deacons : others;
-    const sorted = [...pool].sort((a, b) => {
-      const ca = clergyById.get(a.clergyId);
-      const cb = clergyById.get(b.clergyId);
-      if (!ca || !cb) return a.clergyId - b.clergyId;
-      return sortKey(ca, cb);
-    });
-    const winnerId = sorted[0].clergyId;
-    for (const d of group) d.isInCharge = d.clergyId === winnerId;
-  }
-  return drafts;
 }
 
 // --- provider ---
@@ -257,14 +171,12 @@ export function WizardProvider({ children, dioceseId }: ProviderProps) {
   useEffect(() => { loadDraft(); }, [loadDraft]);
 
   const setPastorDrafts = useCallback((next: TransferDraft[]) => {
-    // Clone so callers can't mutate the array we hold. Apply the auto
-    // in-charge rule before storing — the boards never have to reason
-    // about it.
-    const sanitised = applyParishAutoInCharge(
-      next.map((d) => ({ ...d })),
-      clergyMetaCache,
-    );
-    setPastorDraftsState(sanitised);
+    // The auto-in-charge rule used to live here, but it couldn't see
+    // canonical state — so dragging a clergy into a parish that ALREADY
+    // had a canonical lead would silently re-elect the newcomer. The
+    // page owns the rule now: callers pass the drafts they want stored.
+    const cloned = next.map((d) => ({ ...d }));
+    setPastorDraftsState(cloned);
 
     if (pastorSaveTimer.current) clearTimeout(pastorSaveTimer.current);
     pastorSaveTimer.current = setTimeout(async () => {
@@ -274,7 +186,7 @@ export function WizardProvider({ children, dioceseId }: ProviderProps) {
         await apiFetch(
           `/Bishop/diocese/${dId}/transfer-drafts/pastors`,
           t,
-          { method: "PUT", json: { drafts: sanitised } },
+          { method: "PUT", json: { drafts: cloned } },
         );
         setError(null);
       } catch (e: unknown) {
@@ -286,11 +198,8 @@ export function WizardProvider({ children, dioceseId }: ProviderProps) {
   }, [dId]);
 
   const setLcDrafts = useCallback((next: TransferDraft[]) => {
-    const sanitised = applyLcAutoInCharge(
-      next.map((d) => ({ ...d })),
-      clergyMetaCache,
-    );
-    setLcDraftsState(sanitised);
+    const cloned = next.map((d) => ({ ...d }));
+    setLcDraftsState(cloned);
 
     if (lcSaveTimer.current) clearTimeout(lcSaveTimer.current);
     lcSaveTimer.current = setTimeout(async () => {
@@ -300,7 +209,7 @@ export function WizardProvider({ children, dioceseId }: ProviderProps) {
         await apiFetch(
           `/Bishop/diocese/${dId}/transfer-drafts/lcs`,
           t,
-          { method: "PUT", json: { drafts: sanitised } },
+          { method: "PUT", json: { drafts: cloned } },
         );
         setError(null);
       } catch (e: unknown) {

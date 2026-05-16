@@ -409,6 +409,7 @@ export default function LcBoardPage() {
             ordinationDate: row.ordinationDate,
             currentLevel: "LocalChurch",
             currentLevelId: row.levelID,
+            currentIsInCharge: row.isInCharge ?? false,
           });
         }
       }
@@ -438,17 +439,60 @@ export default function LcBoardPage() {
   const effectiveLc = useCallback((c: ClergyOnBoard): number | null => {
     const d = draftByClergy.get(c.clergyId);
     if (d) {
+      // toLevelId === 0 sentinel = pool (mirrors Page 1's UNASSIGNED_LEVEL_ID).
+      if (d.toLevel === "LocalChurch" && d.toLevelId === 0) return null;
       if (d.toLevel === "LocalChurch") return d.toLevelId;
       return null;
     }
     return c.currentLevelId;
   }, [draftByClergy]);
 
+  // Computed in-charge per LC, single pass — mirrors the parish rule on
+  // Page 1 with one twist: when two or more clergy share an LC and the
+  // ranks are mixed (Deacon + Church Leader), Deacons outrank CLs for
+  // the implicit canonical-fallback default.
+  //   1) explicit draft in-charge wins.
+  //   2) canonical in-charge clergy still here (no draft moved them) wins.
+  //   3) singleton occupants are their own lead.
+  //   4) multi-occupant with no winner → bishop must pick (null).
+  const inChargeByLcComputed = useMemo(() => {
+    const occupants = new Map<number, ClergyOnBoard[]>();
+    for (const c of clergy) {
+      const p = (() => {
+        const d = draftByClergy.get(c.clergyId);
+        if (d) {
+          if (d.toLevel === "LocalChurch" && d.toLevelId === 0) return null;
+          if (d.toLevel === "LocalChurch") return d.toLevelId;
+          return null;
+        }
+        return c.currentLevelId;
+      })();
+      if (p === null) continue;
+      if (!occupants.has(p)) occupants.set(p, []);
+      occupants.get(p)!.push(c);
+    }
+    const winners = new Map<number, number>();
+    for (const [lcId, group] of occupants.entries()) {
+      const drafted = group.find((c) => {
+        const d = draftByClergy.get(c.clergyId);
+        return d && d.toLevel === "LocalChurch" && d.toLevelId === lcId && d.isInCharge;
+      });
+      if (drafted) { winners.set(lcId, drafted.clergyId); continue; }
+      const canon = group.find((c) => {
+        const d = draftByClergy.get(c.clergyId);
+        return c.currentIsInCharge && c.currentLevelId === lcId && !d;
+      });
+      if (canon) { winners.set(lcId, canon.clergyId); continue; }
+      if (group.length === 1) { winners.set(lcId, group[0].clergyId); continue; }
+    }
+    return winners;
+  }, [clergy, draftByClergy]);
+
   const effectiveInCharge = useCallback((c: ClergyOnBoard): boolean => {
-    const d = draftByClergy.get(c.clergyId);
-    if (d) return d.isInCharge;
-    return false;
-  }, [draftByClergy]);
+    const p = effectiveLc(c);
+    if (p === null) return false;
+    return inChargeByLcComputed.get(p) === c.clergyId;
+  }, [effectiveLc, inChargeByLcComputed]);
 
   // Lookup: parishId → in-charge pastor label. Prefer the draft state from
   // Page 1; fall back to the canonical map we built at load time.

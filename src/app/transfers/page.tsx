@@ -11,7 +11,7 @@
 // at /diocese/[id]/transfers stays as-is for back-compat.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   DndContext,
@@ -301,6 +301,57 @@ function PickLeadModal({
 
 // --- main page ---
 
+// Sentinel parish id for the "Unassigned pool" zone. Real parish ids are
+// always positive integers, so 0 can never collide. Storing drafts with
+// this id keeps drag-to-pool persistent and survives reloads via the
+// wizard-context auto-save (the Review page filters these out before
+// posting to /Bishop/transfers/batch-confirm).
+const UNASSIGNED_LEVEL_ID = 0;
+
+function isUnassignedDraft(d: TransferDraft): boolean {
+  return d.toLevel === "Parish" && d.toLevelId === UNASSIGNED_LEVEL_ID;
+}
+
+// Confirmation modal — replaces the browser-native confirm() for actions
+// like "Unassign all" and "Restore". Same pattern as PickLeadModal above.
+function ConfirmModal({
+  title, body, confirmLabel, danger, onConfirm, onClose,
+}: {
+  title: string;
+  body: string;
+  confirmLabel: string;
+  danger?: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+        <h3 className="font-semibold text-base">{title}</h3>
+        <p className="text-sm text-gray-600 mt-2 whitespace-pre-line">{body}</p>
+        <div className="flex justify-end gap-2 mt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm rounded border border-gray-300 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className={`px-3 py-1.5 text-sm rounded text-white ${
+              danger ? "bg-rose-600 hover:bg-rose-700" : "bg-red-600 hover:bg-red-700"
+            }`}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PastorsBoardPage() {
   const { data: session } = useSession();
   const token = session?.accessToken;
@@ -316,6 +367,9 @@ export default function PastorsBoardPage() {
   const [activeRank, setActiveRank] = useState<Rank | null>(null);
   const [activeClergy, setActiveClergy] = useState<ClergyOnBoard | null>(null);
   const [pickLeadFor, setPickLeadFor] = useState<number | null>(null);
+  const [confirming, setConfirming] = useState<null | "unassign-all" | "restore">(null);
+  const [validationModal, setValidationModal] = useState<string | null>(null);
+  const router = useRouter();
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -359,6 +413,7 @@ export default function PastorsBoardPage() {
           ordinationDate: row.ordinationDate,
           currentLevel: "Parish",
           currentLevelId: row.levelID,
+          currentIsInCharge: row.isInCharge ?? false,
         });
       }
       // Tell the wizard context about these clergy so the auto-in-charge
@@ -385,34 +440,64 @@ export default function PastorsBoardPage() {
     return m;
   }, [pastorDrafts]);
 
+  // Effective parish:
+  //  - Draft pinning the clergy to the unassigned sentinel → pool.
+  //  - Any other draft → that parish.
+  //  - No draft → canonical parish.
   const effectiveParish = useCallback((c: ClergyOnBoard): number | null => {
     const d = draftByClergy.get(c.clergyId);
     if (d) {
+      if (isUnassignedDraft(d)) return null;
       if (d.toLevel === "Parish") return d.toLevelId;
       return null;
     }
     return c.currentLevelId;
   }, [draftByClergy]);
 
-  const effectiveInCharge = useCallback((c: ClergyOnBoard): boolean => {
-    const d = draftByClergy.get(c.clergyId);
-    if (d) return d.isInCharge;
-    // Without a draft the auto-rule hasn't run for this clergy yet. Solo
-    // occupant parishes still need an in-charge outline; surface that here
-    // so the bishop sees a sensible default before any drag happens.
-    return false;
-  }, [draftByClergy]);
-
-  // Which clergy is in-charge per parish (from drafts). Used by the modal
-  // pre-selection.
+  // Computed in-charge per parish, single pass:
+  //   1) Explicit draft with isInCharge=true wins.
+  //   2) Otherwise the canonical in-charge clergy (if still in this parish) wins.
+  //   3) Otherwise singleton parishes elect their one clergy.
+  //   4) Multi-clergy with no winner → null (bishop must pick).
+  // Recomputed every render — cheap given the size of a diocese roster.
   const inChargeByParish = useMemo(() => {
-    const m = new Map<number, number>();
-    for (const d of pastorDrafts) {
-      if (d.toLevel !== "Parish" || !d.isInCharge) continue;
-      m.set(d.toLevelId, d.clergyId);
+    const occupants = new Map<number, ClergyOnBoard[]>();
+    for (const c of clergy) {
+      const p = (() => {
+        const d = draftByClergy.get(c.clergyId);
+        if (d) return isUnassignedDraft(d) ? null : d.toLevelId;
+        return c.currentLevelId;
+      })();
+      if (p === null) continue;
+      if (!occupants.has(p)) occupants.set(p, []);
+      occupants.get(p)!.push(c);
     }
-    return m;
-  }, [pastorDrafts]);
+    const winners = new Map<number, number>();
+    for (const [parishId, group] of occupants.entries()) {
+      // 1) explicit draft lead.
+      const drafted = group.find((c) => {
+        const d = draftByClergy.get(c.clergyId);
+        return d && d.toLevel === "Parish" && d.toLevelId === parishId && d.isInCharge;
+      });
+      if (drafted) { winners.set(parishId, drafted.clergyId); continue; }
+      // 2) canonical lead still here, and no draft moved them.
+      const canon = group.find((c) => {
+        const d = draftByClergy.get(c.clergyId);
+        return c.currentIsInCharge && c.currentLevelId === parishId && !d;
+      });
+      if (canon) { winners.set(parishId, canon.clergyId); continue; }
+      // 3) singleton → solo lead.
+      if (group.length === 1) { winners.set(parishId, group[0].clergyId); continue; }
+      // 4) needs pick.
+    }
+    return winners;
+  }, [clergy, draftByClergy]);
+
+  const effectiveInCharge = useCallback((c: ClergyOnBoard): boolean => {
+    const p = effectiveParish(c);
+    if (p === null) return false;
+    return inChargeByParish.get(p) === c.clergyId;
+  }, [effectiveParish, inChargeByParish]);
 
   // Search filter for chips.
   const matches = useCallback((c: ClergyOnBoard): boolean => {
@@ -464,15 +549,24 @@ export default function PastorsBoardPage() {
   // --- mutations ---
 
   // Rewrite the drafts array with the given clergy moved to the given
-  // parishId (null = pool). The provider's setter applies auto-in-charge.
+  // parishId (null = unassigned pool). New arrivals never displace an
+  // existing lead — `isInCharge` is left false; the page's render-time
+  // computation in `inChargeByParish` keeps the existing canonical lead
+  // visible until the bishop manually picks otherwise.
   const moveClergy = useCallback((clergyId: number, toParishId: number | null) => {
     const next = pastorDrafts.filter((d) => d.clergyId !== clergyId);
-    if (toParishId !== null) {
+    if (toParishId === null) {
+      next.push({
+        clergyId,
+        toLevel: "Parish",
+        toLevelId: UNASSIGNED_LEVEL_ID,
+        isInCharge: false,
+      });
+    } else {
       next.push({
         clergyId,
         toLevel: "Parish",
         toLevelId: toParishId,
-        // Auto-in-charge in the provider's setter will fix this up.
         isInCharge: false,
       });
     }
@@ -523,18 +617,49 @@ export default function PastorsBoardPage() {
     moveClergy(moved.clergyId, target.parishId);
   };
 
-  const unassignAll = () => {
-    if (!window.confirm(
-      "Move every Pastor and Archdeacon to the unassigned pool? You can still drag them back before submitting.",
-    )) return;
-    setPastorDrafts([]);
+  const performUnassignAll = () => {
+    setConfirming(null);
+    setPastorDrafts(
+      clergy.map((c) => ({
+        clergyId: c.clergyId,
+        toLevel: "Parish",
+        toLevelId: UNASSIGNED_LEVEL_ID,
+        isInCharge: false,
+      })),
+    );
   };
 
-  const onRestore = () => {
-    if (!window.confirm(
-      "Discard your pastor + LC draft and reload the canonical assignments from the server?",
-    )) return;
-    restore();
+  const performRestore = async () => {
+    setConfirming(null);
+    await restore();
+  };
+
+  // "Next" is always enabled. Validation runs on click; if any parish has
+  // 2+ clergy with no lead, surface a message instead of navigating.
+  const goNext = () => {
+    const offenders: string[] = [];
+    const occupants = new Map<number, ClergyOnBoard[]>();
+    for (const c of clergy) {
+      const p = effectiveParish(c);
+      if (p === null) continue;
+      if (!occupants.has(p)) occupants.set(p, []);
+      occupants.get(p)!.push(c);
+    }
+    for (const [parishId, group] of occupants.entries()) {
+      if (group.length < 2) continue;
+      if (inChargeByParish.get(parishId)) continue;
+      const name = parishes.find((p) => p.parishId === parishId)?.parishName ?? `Parish #${parishId}`;
+      offenders.push(name);
+    }
+    if (offenders.length > 0) {
+      setValidationModal(
+        `Pick the lead pastor for the following ${
+          offenders.length === 1 ? "parish" : "parishes"
+        } before moving on:\n\n• ${offenders.join("\n• ")}`,
+      );
+      return;
+    }
+    router.push("/transfers/lc");
   };
 
   // --- render ---
@@ -555,7 +680,7 @@ export default function PastorsBoardPage() {
             when a parish ends up with two or more clergy.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <input
             type="search"
             value={search}
@@ -565,29 +690,18 @@ export default function PastorsBoardPage() {
           />
           <button
             type="button"
-            onClick={unassignAll}
+            onClick={() => setConfirming("unassign-all")}
             className="border border-gray-300 text-gray-700 text-sm px-3 py-1.5 rounded hover:bg-gray-50"
           >
             Unassign all
           </button>
           <button
             type="button"
-            onClick={onRestore}
+            onClick={() => setConfirming("restore")}
             className="border border-gray-300 text-gray-700 text-sm px-3 py-1.5 rounded hover:bg-gray-50"
           >
             Restore
           </button>
-          <Link
-            href="/transfers/lc"
-            aria-disabled={anyParishNeedsLead}
-            onClick={(e) => { if (anyParishNeedsLead) e.preventDefault(); }}
-            className={`text-sm px-3 py-1.5 rounded ${anyParishNeedsLead
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-red-600 text-white hover:bg-red-700"}`}
-            title={anyParishNeedsLead ? "Resolve in-charge picks before moving on" : ""}
-          >
-            Next →
-          </Link>
         </div>
       </header>
 
@@ -650,6 +764,64 @@ export default function PastorsBoardPage() {
             pickInCharge(pickLeadFor, clergyId);
             setPickLeadFor(null);
           }}
+        />
+      )}
+
+      {/* Next button at the bottom-left. Always enabled — the bishop may
+          have no pastor changes and only want to move Deacons / Church
+          Leaders on Page 2. Validation runs on click. */}
+      <div className="pt-4 flex">
+        <button
+          type="button"
+          onClick={goNext}
+          className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded shadow-sm"
+        >
+          Next →
+        </button>
+        {anyParishNeedsLead && (
+          <span className="ml-3 self-center text-xs text-amber-700">
+            {/* Hint only — the click handler will show the full list. */}
+            Some parishes need a lead picked.
+          </span>
+        )}
+      </div>
+
+      {confirming === "unassign-all" && (
+        <ConfirmModal
+          title="Move every clergy to the pool?"
+          body={
+            "All Pastors and Archdeacons will be moved to the Unassigned pool. " +
+            "Your work is saved — you can drag them back into parishes one at a time. " +
+            "Nothing is applied until you submit on the Review page."
+          }
+          confirmLabel="Unassign all"
+          danger
+          onConfirm={performUnassignAll}
+          onClose={() => setConfirming(null)}
+        />
+      )}
+
+      {confirming === "restore" && (
+        <ConfirmModal
+          title="Discard the current draft?"
+          body={
+            "This wipes every staged change on both pages of the wizard and reloads " +
+            "the canonical assignments from the server. You can't undo this."
+          }
+          confirmLabel="Discard and restore"
+          danger
+          onConfirm={performRestore}
+          onClose={() => setConfirming(null)}
+        />
+      )}
+
+      {validationModal && (
+        <ConfirmModal
+          title="Pick a lead pastor first"
+          body={validationModal}
+          confirmLabel="OK"
+          onConfirm={() => setValidationModal(null)}
+          onClose={() => setValidationModal(null)}
         />
       )}
     </div>
