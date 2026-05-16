@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { VestryCard, type VestryMember } from "@/components/VestryCard";
+import UpcomingBishopVisits from "@/components/UpcomingBishopVisits";
 import { apiFetch } from "@/lib/apiClient";
 
 interface OfficialEntry {
@@ -209,6 +210,8 @@ export default function LcOverviewPage() {
             </p>
           )}
         </section>
+
+        <UpcomingBishopVisits localChurchId={lc.localChurchId} />
 
         <section>
           <div className="flex items-start justify-between mb-1 gap-3">

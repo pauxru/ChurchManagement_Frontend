@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
+import BishopCalendar from "@/components/BishopCalendar";
 import { DioceseHero } from "./DioceseHero";
 import { KpiCards } from "./KpiCards";
 import { CessMatrix } from "./CessMatrix";
@@ -374,6 +375,8 @@ export default function DioceseOverviewPage() {
           />
           <ClergyDistribution clergy={allClergy} />
         </div>
+
+        <BishopCalendar dioceseId={overview.dioceseId} />
 
         <ParishGrid
           parishes={parishes}
