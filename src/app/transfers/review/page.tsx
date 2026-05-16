@@ -890,23 +890,30 @@ export default function TransfersReviewPage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-              <Link
-                href="/transfers/lc"
-                className="text-xs text-blue-700 hover:underline"
-              >
-                ← Back to LCs
-              </Link>
-              <button
-                type="button"
-                disabled={submitting || draftsToSubmit.length === 0 || result !== null}
-                onClick={onSubmit}
-                className="px-3 py-1.5 text-sm rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submitting ? "Submitting…" : "Submit →"}
-              </button>
-            </div>
           </aside>
+        </div>
+      )}
+
+      {/* Bottom-right Submit button (out of the sticky panel so it always
+          lives at the very end of the page body). Full-width on mobile,
+          right-aligned from sm: up. "← Back to LCs" link sits to its
+          left, also at the bottom. */}
+      {hasAnyDrafts && (
+        <div className="mt-6 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+          <Link
+            href="/transfers/lc"
+            className="text-xs text-blue-700 hover:underline sm:mr-auto"
+          >
+            ← Back to LCs
+          </Link>
+          <button
+            type="button"
+            disabled={submitting || draftsToSubmit.length === 0 || result !== null}
+            onClick={onSubmit}
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          >
+            {submitting ? "Submitting…" : "Submit →"}
+          </button>
         </div>
       )}
     </div>

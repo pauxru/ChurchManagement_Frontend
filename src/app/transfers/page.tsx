@@ -767,10 +767,17 @@ export default function PastorsBoardPage() {
         />
       )}
 
-      {/* Next button at the bottom-left. Always enabled — the bishop may
+      {/* Next button at the bottom-right. Always enabled — the bishop may
           have no pastor changes and only want to move Deacons / Church
-          Leaders on Page 2. Validation runs on click. */}
-      <div className="pt-4 flex">
+          Leaders on Page 2. Validation runs on click. The "needs a lead"
+          hint sits inline to the LEFT of the button. */}
+      <div className="pt-4 flex justify-end items-center gap-3">
+        {anyParishNeedsLead && (
+          <span className="text-xs text-amber-700">
+            {/* Hint only — the click handler will show the full list. */}
+            Some parishes need a lead picked.
+          </span>
+        )}
         <button
           type="button"
           onClick={goNext}
@@ -778,12 +785,6 @@ export default function PastorsBoardPage() {
         >
           Next →
         </button>
-        {anyParishNeedsLead && (
-          <span className="ml-3 self-center text-xs text-amber-700">
-            {/* Hint only — the click handler will show the full list. */}
-            Some parishes need a lead picked.
-          </span>
-        )}
       </div>
 
       {confirming === "unassign-all" && (

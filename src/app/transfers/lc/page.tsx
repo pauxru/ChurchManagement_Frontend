@@ -702,17 +702,6 @@ export default function LcBoardPage() {
           >
             Restore
           </button>
-          <Link
-            href="/transfers/review"
-            aria-disabled={anyLcNeedsLead}
-            onClick={(e) => { if (anyLcNeedsLead) e.preventDefault(); }}
-            className={`text-sm px-3 py-1.5 rounded ${anyLcNeedsLead
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-red-600 text-white hover:bg-red-700"}`}
-            title={anyLcNeedsLead ? "Resolve in-charge picks before moving on" : ""}
-          >
-            Next →
-          </Link>
         </div>
       </header>
 
@@ -812,6 +801,27 @@ export default function LcBoardPage() {
           }}
         />
       )}
+
+      {/* Next button at the bottom-right — mirrors Page 1's layout. The
+          "needs a lead" hint sits inline to the LEFT of the button. */}
+      <div className="pt-4 flex justify-end items-center gap-3">
+        {anyLcNeedsLead && (
+          <span className="text-xs text-amber-700">
+            Some local churches need a lead picked.
+          </span>
+        )}
+        <Link
+          href="/transfers/review"
+          aria-disabled={anyLcNeedsLead}
+          onClick={(e) => { if (anyLcNeedsLead) e.preventDefault(); }}
+          className={`text-sm font-medium px-4 py-2 rounded shadow-sm ${anyLcNeedsLead
+            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+            : "bg-red-600 text-white hover:bg-red-700"}`}
+          title={anyLcNeedsLead ? "Resolve in-charge picks before moving on" : ""}
+        >
+          Next →
+        </Link>
+      </div>
     </div>
   );
 }
