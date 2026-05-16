@@ -37,7 +37,7 @@ export function Navbar() {
       { href: `/diocese/${DEFAULT_DIOCESE_ID}`, label: "Diocese" },
     );
     if (canSeeTransfers) {
-      items.push({ href: `/diocese/${DEFAULT_DIOCESE_ID}/transfers`, label: "Transfers" });
+      items.push({ href: "/transfers", label: "Transfers" });
     }
   } else {
     items.push({ href: "/near-me", label: "AIPCA Church Near Me" });

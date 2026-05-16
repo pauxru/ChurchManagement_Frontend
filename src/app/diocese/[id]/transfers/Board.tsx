@@ -358,9 +358,12 @@ function PickLeadPopover({
 
 // --- page component ---
 
-export default function Board() {
+// `dioceseId` prop lets the same component back the top-level /transfers
+// route (no dynamic segment) AND the legacy /diocese/[id]/transfers URL.
+// When the prop is omitted we fall back to useParams as before.
+export default function Board({ dioceseId: dioceseIdProp }: { dioceseId?: number } = {}) {
   const params = useParams<{ id: string }>();
-  const dioceseId = Number(params?.id);
+  const dioceseId = dioceseIdProp ?? Number(params?.id);
   const { data: session } = useSession();
   const token = session?.accessToken;
 

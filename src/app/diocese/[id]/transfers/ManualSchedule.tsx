@@ -66,9 +66,10 @@ const STATUS_PILL: Record<Transfer["status"], string> = {
   Cancelled: "bg-gray-100 text-gray-700 border-gray-300",
 };
 
-export default function ManualSchedule() {
+// `dioceseId` prop: see Board.tsx for the rationale.
+export default function ManualSchedule({ dioceseId: dioceseIdProp }: { dioceseId?: number } = {}) {
   const params = useParams<{ id: string }>();
-  const dioceseId = Number(params?.id);
+  const dioceseId = dioceseIdProp ?? Number(params?.id);
   const { data: session } = useSession();
   const token = session?.accessToken;
 
