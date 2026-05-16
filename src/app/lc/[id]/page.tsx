@@ -61,6 +61,14 @@ const MANAGE_TILES = [
   { slug: "secretariate", label: "Secretariate", desc: "Communication and meetings" },
 ];
 
+// Events and Announcements live at the diocese level today — surfaced
+// from the LC overview as outbound links so the bishop's office news
+// reaches members without the navbar carrying separate top-level entries.
+const OUTBOUND_TILES = [
+  { href: "/events",        label: "Events",        desc: "Upcoming diocesan and LC events" },
+  { href: "/announcements", label: "Announcements", desc: "Posts from the Bishop's office" },
+];
+
 // The eight officer seats every LC has. Used to fill placeholder rows in
 // the Church Office section so the page reads as "we have a Treasurer
 // slot — it just isn't filled yet" rather than "no officials".
@@ -451,6 +459,17 @@ export default function LcOverviewPage() {
                 <li key={t.slug}>
                   <Link
                     href={`/lc/${lc.localChurchId}/${t.slug}`}
+                    className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-red-300 hover:shadow-md transition"
+                  >
+                    <div className="font-semibold text-red-900">{t.label}</div>
+                    <div className="text-xs text-gray-600 mt-1">{t.desc}</div>
+                  </Link>
+                </li>
+              ))}
+              {OUTBOUND_TILES.map((t) => (
+                <li key={t.href}>
+                  <Link
+                    href={t.href}
                     className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-red-300 hover:shadow-md transition"
                   >
                     <div className="font-semibold text-red-900">{t.label}</div>

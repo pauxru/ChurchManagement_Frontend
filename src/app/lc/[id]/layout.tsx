@@ -57,8 +57,12 @@ export default function LcLayout({ children }: { children: React.ReactNode }) {
       <Navbar />
       {hasAccess && info && (
         <header className="bg-white border-b sticky top-[60px] z-30">
-          <nav className="container mx-auto px-6 overflow-x-auto">
-            <ul className="flex gap-1 text-sm">
+          {/* On phones the tab strip overflows horizontally; force the
+              first tab against the left edge so the active "Overview"
+              indicator stays in view instead of being centred and
+              scrolled off-screen. Desktop keeps the centred container. */}
+          <nav className="md:container md:mx-auto px-3 md:px-6 overflow-x-auto">
+            <ul className="flex gap-1 text-sm justify-start md:justify-start whitespace-nowrap">
               {TABS.map((t) => {
                 const href = t.slug ? `${base}/${t.slug}` : base;
                 const active = pathname === href || (t.slug && pathname?.startsWith(href + "/"));

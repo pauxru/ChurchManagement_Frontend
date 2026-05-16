@@ -28,8 +28,10 @@ export function Navbar() {
     items.push(
       { href: "/churches", label: "Churches" },
       { href: "/clergy", label: "Clergy" },
-      { href: "/events", label: "Events" },
-      { href: "/announcements", label: "Announcements" },
+      // Events + Announcements moved off the navbar — they're now reachable
+      // from the Diocese dashboard and the LC overview as buttons. Keeping
+      // the top bar shorter prevents the wrap-and-disappear on tablet width
+      // the operator was hitting.
       // TEMPORARY: open to every signed-in user. The diocese overview
       // page is what most operators use as their dashboard; same
       // pattern as Transfers below — restore tier gating via

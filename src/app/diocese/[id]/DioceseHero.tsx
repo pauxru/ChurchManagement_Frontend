@@ -138,11 +138,25 @@ export function DioceseHero({
           {/* Right: quick actions */}
           <div className="flex flex-col gap-2 shrink-0">
             <Link
-              href={`/diocese/${dioceseId}/transfers`}
+              href="/transfers"
               className="bg-yellow-400 text-red-900 font-semibold text-sm px-4 py-2 rounded shadow hover:bg-yellow-300 text-center"
             >
               Schedule transfer
             </Link>
+            <div className="flex gap-2">
+              <Link
+                href="/events"
+                className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30 text-sm px-3 py-2 rounded text-center"
+              >
+                Events
+              </Link>
+              <Link
+                href="/announcements"
+                className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30 text-sm px-3 py-2 rounded text-center"
+              >
+                Announcements
+              </Link>
+            </div>
             <Link
               href={`/admin/diocese/${dioceseId}/settings`}
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30 text-sm px-4 py-2 rounded text-center"
