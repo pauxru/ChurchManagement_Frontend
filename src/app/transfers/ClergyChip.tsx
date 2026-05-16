@@ -34,7 +34,7 @@ export function ClergyChip({ clergy, isInCharge, onClick, isDragging }: Props) {
   return (
     <div
       onClick={onClick}
-      className={`relative bg-white rounded-xl px-2 pt-3 pb-2 shadow-sm transition w-full
+      className={`relative bg-white rounded-lg px-1.5 pt-2 pb-1.5 shadow-sm transition w-full
         ${onClick ? "cursor-pointer hover:shadow-md hover:border-red-300" : ""}
         ${isDragging ? "opacity-50" : ""}
         ${isInCharge ? "border-2 border-emerald-500" : "border border-gray-200"}`}
@@ -42,26 +42,26 @@ export function ClergyChip({ clergy, isInCharge, onClick, isDragging }: Props) {
     >
       {isInCharge && (
         <span
-          className="absolute top-1 right-1 bg-emerald-100 text-emerald-900 text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
+          className="absolute top-0.5 right-0.5 bg-emerald-100 text-emerald-900 text-[8px] font-semibold uppercase tracking-wide px-1 py-px rounded-full"
         >
           Lead
         </span>
       )}
       <div className="flex justify-center">
         <div
-          className={`w-16 h-16 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden shadow ring-2 ring-white`}
+          className={`w-12 h-12 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden shadow ring-2 ring-white`}
         >
           {clergy.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={clergy.photoUrl} alt={display} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-white text-lg font-bold opacity-95">{initials(clergy.name)}</span>
+            <span className="text-white text-sm font-bold opacity-95">{initials(clergy.name)}</span>
           )}
         </div>
       </div>
-      <div className="mt-1.5 text-center">
-        <p className="text-xs font-medium text-gray-900 leading-tight truncate">{display}</p>
-        <p className="text-[10px] text-gray-500 leading-tight">{clergy.rankLabel}</p>
+      <div className="mt-1 text-center">
+        <p className="text-[11px] font-medium text-gray-900 leading-tight truncate">{display}</p>
+        <p className="text-[9px] text-gray-500 leading-tight">{clergy.rankLabel}</p>
       </div>
     </div>
   );

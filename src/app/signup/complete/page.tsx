@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
 import { LocalChurchPicker, LcLookup } from "@/components/LocalChurchPicker";
+import { Navbar } from "@/components/Navbar";
 
 // Position enum mirrors backend Models.Position. Lay board officers only —
 // clergy roles live in ClergyRanks, not here.
@@ -205,12 +206,18 @@ export default function SignupCompletePage() {
   }
 
   if (sessionStatus === "loading" || step === "loading") {
-    return <div className="p-8">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="p-8">Loading...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="container mx-auto max-w-2xl bg-white shadow rounded p-6">
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="container mx-auto max-w-2xl bg-white shadow rounded p-6 mt-10">
         <h1 className="text-2xl font-bold mb-1">Complete your account</h1>
         <p className="text-gray-600 mb-6">
           A few details so we can link you to your church record.

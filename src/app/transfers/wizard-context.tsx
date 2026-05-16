@@ -102,6 +102,26 @@ export function useWizard(): Ctx {
   return ctx;
 }
 
+// Defensive normalisation for drafts loaded off the server. Older
+// backend builds (pre-JsonStringEnumConverter) saved toLevel as the
+// integer enum value (e.g. 2 for Parish). The current backend stores
+// it as the string ("Parish"). Coerce here so a stale draft in the
+// DB doesn't 400 every subsequent PUT.
+const LEVEL_BY_INT: Record<number, Level> = {
+  1: "LocalChurch",
+  2: "Parish",
+  3: "Diocese",
+};
+
+function normaliseDraft(d: TransferDraft): TransferDraft {
+  const tl = d.toLevel as unknown;
+  if (typeof tl === "number") {
+    const asString = LEVEL_BY_INT[tl] ?? "Parish";
+    return { ...d, toLevel: asString };
+  }
+  return d;
+}
+
 // --- provider ---
 
 interface ProviderProps {
@@ -156,8 +176,8 @@ export function WizardProvider({ children, dioceseId }: ProviderProps) {
         `/Bishop/diocese/${dId}/transfer-drafts`,
         token,
       );
-      setPastorDraftsState(Array.isArray(d.pastorDrafts) ? d.pastorDrafts : []);
-      setLcDraftsState(Array.isArray(d.lcDrafts) ? d.lcDrafts : []);
+      setPastorDraftsState(Array.isArray(d.pastorDrafts) ? d.pastorDrafts.map(normaliseDraft) : []);
+      setLcDraftsState(Array.isArray(d.lcDrafts) ? d.lcDrafts.map(normaliseDraft) : []);
       setEffectiveDate(d.effectiveDate ?? null);
       setApplyImmediately(d.applyImmediately ?? true);
       setCcList(d.ccList ?? "");
