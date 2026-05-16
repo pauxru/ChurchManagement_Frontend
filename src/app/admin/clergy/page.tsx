@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/apiClient";
+import CreateClergyForm from "@/components/CreateClergyForm";
 
 interface ClergyRow {
   clergyId: number;
@@ -42,16 +43,23 @@ export default function AdminClergyPage() {
   const token = session?.accessToken;
   const [rows, setRows] = useState<ClergyRow[] | null>(null);
   const [editing, setEditing] = useState<ClergyFull | null>(null);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
+  const refreshRows = useCallback(async () => {
     const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
-    fetch(`${base}/public/clergy`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setRows)
-      .catch(() => setRows([]));
+    try {
+      const r = await fetch(`${base}/public/clergy`);
+      setRows(r.ok ? await r.json() : []);
+    } catch {
+      setRows([]);
+    }
   }, []);
+
+  useEffect(() => {
+    void refreshRows();
+  }, [refreshRows]);
 
   async function openEditor(id: number) {
     setError(null);
@@ -73,10 +81,7 @@ export default function AdminClergyPage() {
         json: editing,
       });
       setEditing(null);
-      // Refresh list
-      const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
-      const r = await fetch(`${base}/public/clergy`);
-      setRows(r.ok ? await r.json() : []);
+      await refreshRows();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -89,9 +94,18 @@ export default function AdminClergyPage() {
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-5xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-4">
         <h1 className="text-3xl font-bold">Manage Clergy</h1>
-        <Link href="/admin" className="text-sm text-red-700 hover:underline">← Admin</Link>
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="bg-red-700 text-white text-sm px-4 py-2 rounded hover:bg-red-600"
+          >
+            + Create clergy
+          </button>
+          <Link href="/admin" className="text-sm text-red-700 hover:underline">← Admin</Link>
+        </div>
       </div>
 
       {error && <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded mb-4">{error}</div>}
@@ -232,6 +246,27 @@ export default function AdminClergyPage() {
                 {saving ? "Saving…" : "Save"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {creating && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto"
+          onClick={() => setCreating(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl w-full max-w-lg mt-12 p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-bold mb-4">Create clergy</h2>
+            <CreateClergyForm
+              onCreated={async () => {
+                setCreating(false);
+                await refreshRows();
+              }}
+              onCancel={() => setCreating(false)}
+            />
           </div>
         </div>
       )}

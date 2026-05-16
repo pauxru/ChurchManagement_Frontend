@@ -16,6 +16,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
 import BishopCalendar from "@/components/BishopCalendar";
+import CreateClergyForm from "@/components/CreateClergyForm";
 import { DioceseHero } from "./DioceseHero";
 import { KpiCards } from "./KpiCards";
 import { CessMatrix } from "./CessMatrix";
@@ -105,6 +106,7 @@ export default function DioceseOverviewPage() {
   const [settings, setSettings] = useState<DioceseSettings | null>(null);
   const [events, setEvents] = useState<EventDto[]>([]);
   const [transfers, setTransfers] = useState<TransferDto[]>([]);
+  const [creatingClergy, setCreatingClergy] = useState(false);
 
   // Track the latest in-flight load so out-of-order refreshes (e.g. the
   // bishop in-charge toggle firing while the initial load is still
@@ -363,6 +365,7 @@ export default function DioceseOverviewPage() {
         inChargeBishop={inChargeBishop}
         inChargeBishopPublic={inChargeBishopPublic}
         settings={settings}
+        onCreateClergy={() => setCreatingClergy(true)}
       />
 
       <main className="container mx-auto px-6 py-8 space-y-10">
@@ -404,6 +407,28 @@ export default function DioceseOverviewPage() {
 
         <RecentTransfers transfers={transfers} dioceseId={overview.dioceseId} />
       </main>
+
+      {creatingClergy && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto"
+          onClick={() => setCreatingClergy(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl w-full max-w-lg mt-12 p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-bold mb-4">Create clergy</h2>
+            <CreateClergyForm
+              dioceseIdFilter={overview.dioceseId}
+              onCreated={async () => {
+                setCreatingClergy(false);
+                await loadAll();
+              }}
+              onCancel={() => setCreatingClergy(false)}
+            />
+          </div>
+        </div>
+      )}
 
       <footer className="bg-gray-900 text-gray-300 py-6 text-center mt-12 space-y-1">
         <p className="text-sm">

@@ -18,6 +18,9 @@ interface Props {
   inChargeBishop: BishopRow | null;
   inChargeBishopPublic: ClergyPublic | null;
   settings: DioceseSettings | null;
+  // Fires when the operator clicks "+ Create clergy" so the page can
+  // open the shared modal. Optional — when omitted, the button hides.
+  onCreateClergy?: () => void;
 }
 
 export function DioceseHero({
@@ -27,6 +30,7 @@ export function DioceseHero({
   inChargeBishop,
   inChargeBishopPublic,
   settings,
+  onCreateClergy,
 }: Props) {
   const displayName = inChargeBishop
     ? clergyDisplayName(
@@ -157,6 +161,15 @@ export function DioceseHero({
                 Announcements
               </Link>
             </div>
+            {onCreateClergy && (
+              <button
+                type="button"
+                onClick={onCreateClergy}
+                className="bg-white text-red-900 font-semibold text-sm px-4 py-2 rounded shadow hover:bg-yellow-50 text-center"
+              >
+                + Create clergy
+              </button>
+            )}
             <Link
               href={`/admin/diocese/${dioceseId}/settings`}
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30 text-sm px-4 py-2 rounded text-center"
