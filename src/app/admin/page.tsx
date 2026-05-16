@@ -124,6 +124,12 @@ export default function AdminDashboard() {
                   <div className="text-sm text-gray-600">Upload CSVs to load hierarchy or member data.</div>
                 </Link>
               </li>
+              <li>
+                <Link href="/admin/diocese/1/settings" className="block bg-white shadow rounded p-4 hover:bg-gray-50">
+                  <div className="font-semibold">Diocese settings</div>
+                  <div className="text-sm text-gray-600">Letterhead, contact info, bishop signature, transfer-letter template, default CC.</div>
+                </Link>
+              </li>
             </ul>
           </section>
         </div>

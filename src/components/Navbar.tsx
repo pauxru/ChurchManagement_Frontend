@@ -30,6 +30,11 @@ export function Navbar() {
       { href: "/clergy", label: "Clergy" },
       { href: "/events", label: "Events" },
       { href: "/announcements", label: "Announcements" },
+      // TEMPORARY: open to every signed-in user. The diocese overview
+      // page is what most operators use as their dashboard; same
+      // pattern as Transfers below — restore tier gating via
+      // @/lib/permissions when RBAC is bedded in.
+      { href: `/diocese/${DEFAULT_DIOCESE_ID}`, label: "Diocese" },
     );
     if (canSeeTransfers) {
       items.push({ href: `/diocese/${DEFAULT_DIOCESE_ID}/transfers`, label: "Transfers" });
