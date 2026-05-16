@@ -10,6 +10,7 @@ export interface ClergyDto {
   rank: number;
   rankLabel: string;
   salutation: string;
+  isInCharge?: boolean;
   level: number;
   assignmentName: string | null;
   ordinationYear: number | null;
@@ -264,8 +265,20 @@ export function ClergyView({ clergy }: Props) {
                     <li key={c.clergyId} className="w-44">
                       <Link
                         href={`/clergy/${c.clergyId}`}
-                        className="block border border-gray-200 rounded-lg p-3 text-center hover:shadow-md hover:border-red-300 transition bg-white"
+                        className={`relative block border rounded-lg p-3 text-center hover:shadow-md transition bg-white ${
+                          c.isInCharge
+                            ? "border-emerald-500 border-2 hover:border-emerald-600"
+                            : "border-gray-200 hover:border-red-300"
+                        }`}
                       >
+                        {c.isInCharge && (
+                          <span
+                            className="absolute top-1.5 right-1.5 bg-emerald-100 text-emerald-900 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm"
+                            title="Lead clergy for this assignment"
+                          >
+                            In-charge
+                          </span>
+                        )}
                         {c.photoUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img

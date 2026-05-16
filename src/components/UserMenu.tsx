@@ -324,6 +324,16 @@ export function UserMenu({ size = 36 }: Props) {
                 Diocese overview
               </Link>
             )}
+            {isAdmin && (
+              <Link
+                href="/admin/diocese/1/settings"
+                onClick={() => setOpen(false)}
+                role="menuitem"
+                className="block px-4 py-2 hover:bg-gray-50 text-sm"
+              >
+                Diocese settings
+              </Link>
+            )}
           </nav>
 
           <div className="border-t px-4 py-2">
