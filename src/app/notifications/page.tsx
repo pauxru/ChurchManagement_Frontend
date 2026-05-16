@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Navbar } from "@/components/Navbar";
 import { apiFetch } from "@/lib/apiClient";
+import { letterUrlFor, transferIdFromLink } from "@/lib/transferLetter";
 
 // Mirrors the controller's projection. `kindCode` is the numeric enum value
 // so we can colour-map even if the string name changes server-side.
@@ -217,6 +218,25 @@ export default function NotificationsPage() {
                         Open
                       </button>
                     )}
+                    {/* For ClergyTransfer notifications, surface a direct
+                        "Download letter" link to the PDF endpoint. The
+                        backend emits LinkUrl as `/notifications#transfer-{id}`
+                        (Phase 3); older rows without that anchor fall back
+                        to no button so we don't break pre-board notifications. */}
+                    {n.kind === "ClergyTransfer" && (() => {
+                      const transferId = transferIdFromLink(n.linkUrl);
+                      if (transferId === null) return null;
+                      return (
+                        <a
+                          href={letterUrlFor(transferId)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-700 hover:underline font-medium"
+                        >
+                          Download letter
+                        </a>
+                      );
+                    })()}
                     {!n.isRead && (
                       <button
                         type="button"
