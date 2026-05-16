@@ -1,8 +1,8 @@
 "use client";
 
 // LC Finances. Every FinanceRecord is either an Inflow or an Outflow; the
-// table shows them in two columns and computes a running balance for the
-// selected month in the footer.
+// page lists them as a single-column card stack (mobile-first) and computes
+// a running balance for the selected month in a sticky footer-style block.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -141,17 +141,18 @@ export default function FinancesPage() {
   }, []);
 
   return (
-    <div className="container mx-auto px-6 py-6">
-      <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
+    <div className="container mx-auto px-4 py-4 sm:px-6 sm:py-6 max-w-3xl">
+      {/* Header: title + Cess shortcut. Full-width stacking on mobile; row on sm+. */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4 sm:mb-5">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Finances</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Track inflows and outflows. The running balance below is calculated for the selected month.
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Finances</h2>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            Track inflows and outflows. The running balance is calculated for the selected month.
           </p>
         </div>
         <Link
           href={`/lc/${lcId}/cess`}
-          className="shrink-0 bg-red-700 hover:bg-red-800 text-white text-sm font-medium px-4 py-2 rounded shadow-sm"
+          className="w-full sm:w-auto text-center shrink-0 bg-red-700 hover:bg-red-800 text-white text-sm font-medium px-4 py-2 rounded shadow-sm"
         >
           Cess →
         </Link>
@@ -164,148 +165,184 @@ export default function FinancesPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-4 p-4 flex flex-wrap items-center gap-3">
-        <span className="text-sm font-medium text-gray-700">Period:</span>
-        <select
-          value={month}
-          onChange={(e) => setMonth(Number(e.target.value))}
-          className="border border-gray-300 px-3 py-1.5 rounded-md text-sm focus:ring-2 focus:ring-red-200 focus:border-red-500 outline-none"
-        >
-          {MONTH_NAMES.map((name, i) => (
-            <option key={i} value={i + 1}>{name}</option>
-          ))}
-        </select>
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="border border-gray-300 px-3 py-1.5 rounded-md text-sm focus:ring-2 focus:ring-red-200 focus:border-red-500 outline-none"
-        >
-          {yearChoices.map((y) => <option key={y} value={y}>{y}</option>)}
-        </select>
+      {/* Period switcher. Selects are full-width on mobile, inline on sm+. */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-4 p-3 sm:p-4">
+        <div className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2 sm:mb-0 sm:hidden">
+          Period
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <span className="hidden sm:inline text-sm font-medium text-gray-700">Period:</span>
+          <select
+            value={month}
+            onChange={(e) => setMonth(Number(e.target.value))}
+            className="w-full sm:w-auto border border-gray-300 px-3 py-2 sm:py-1.5 rounded-md text-sm focus:ring-2 focus:ring-red-200 focus:border-red-500 outline-none"
+          >
+            {MONTH_NAMES.map((name, i) => (
+              <option key={i} value={i + 1}>{name}</option>
+            ))}
+          </select>
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="w-full sm:w-auto border border-gray-300 px-3 py-2 sm:py-1.5 rounded-md text-sm focus:ring-2 focus:ring-red-200 focus:border-red-500 outline-none"
+          >
+            {yearChoices.map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
+      </div>
 
-        <div className="ml-auto flex flex-wrap gap-3 text-xs">
-          <div className="px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100">
-            <span className="font-medium">Inflows:</span> KES {formatKes(totals.inflow)}
+      {/* KPI strip: stacks vertically on mobile, 3-col grid from sm:. */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-4">
+        <div className="px-3 py-3 rounded-md bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100">
+          <div className="text-[11px] uppercase tracking-wide font-medium opacity-80">Inflows</div>
+          <div className="text-base sm:text-lg font-semibold tabular-nums mt-0.5">
+            KES {formatKes(totals.inflow)}
           </div>
-          <div className="px-3 py-1.5 rounded-md bg-rose-50 text-rose-800 ring-1 ring-rose-100">
-            <span className="font-medium">Outflows:</span> KES {formatKes(totals.outflow)}
+        </div>
+        <div className="px-3 py-3 rounded-md bg-rose-50 text-rose-800 ring-1 ring-rose-100">
+          <div className="text-[11px] uppercase tracking-wide font-medium opacity-80">Outflows</div>
+          <div className="text-base sm:text-lg font-semibold tabular-nums mt-0.5">
+            KES {formatKes(totals.outflow)}
+          </div>
+        </div>
+        <div
+          className={`px-3 py-3 rounded-md ring-1 ${
+            totals.balance < 0
+              ? "bg-rose-100 text-rose-900 ring-rose-200"
+              : "bg-gray-900 text-emerald-300 ring-gray-900"
+          }`}
+        >
+          <div className="text-[11px] uppercase tracking-wide font-medium opacity-80">Balance</div>
+          <div className="text-base sm:text-lg font-semibold tabular-nums mt-0.5">
+            KES {formatKes(totals.balance)}
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wide">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium">Date</th>
-              <th className="text-left px-4 py-3 font-medium">Description</th>
-              <th className="text-left px-4 py-3 font-medium">Category</th>
-              <th className="text-right px-4 py-3 font-medium">Inflow (KES)</th>
-              <th className="text-right px-4 py-3 font-medium">Outflow (KES)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedRows.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-center text-gray-500 py-10">
-                  No transactions for {MONTH_NAMES[month - 1]} {year}.
-                </td>
-              </tr>
-            ) : (
-              sortedRows.map((r) => {
-                const isOut = r.direction === DIRECTION_OUTFLOW;
-                return (
-                  <tr key={r.id} className="border-t border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-2.5 text-gray-700 whitespace-nowrap">{r.date}</td>
-                    <td className="px-4 py-2.5 text-gray-800">{r.description || <span className="text-gray-400">—</span>}</td>
-                    <td className="px-4 py-2.5">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+      {/* Add buttons. Full-width stacked on mobile; side-by-side on sm+.
+          Each pre-fills the modal's direction so users don't have to pick it themselves. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-4">
+        <button
+          onClick={() => {
+            setForm({ ...initialForm(), direction: DIRECTION_INFLOW, category: 2 });
+            setShowModal(true);
+          }}
+          className="w-full text-sm font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 hover:border-emerald-400 px-4 py-3 rounded-md transition shadow-sm"
+        >
+          + Add inflow
+        </button>
+        <button
+          onClick={() => {
+            setForm({ ...initialForm(), direction: DIRECTION_OUTFLOW, category: 5 });
+            setShowModal(true);
+          }}
+          className="w-full text-sm font-medium text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 hover:border-rose-400 px-4 py-3 rounded-md transition shadow-sm"
+        >
+          + Add outflow
+        </button>
+      </div>
+
+      {/* Single-column card list. Each card stacks amount (large, colour-coded)
+          over category + description + date. */}
+      <div className="space-y-2 mb-4">
+        {sortedRows.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 text-center text-gray-500 py-10 px-4 text-sm">
+            No transactions for {MONTH_NAMES[month - 1]} {year}.
+          </div>
+        ) : (
+          sortedRows.map((r) => {
+            const isOut = r.direction === DIRECTION_OUTFLOW;
+            return (
+              <div
+                key={r.id}
+                className={`bg-white rounded-lg shadow-sm border-l-4 ${
+                  isOut ? "border-l-rose-500" : "border-l-emerald-500"
+                } border-y border-r border-gray-100 px-4 py-3`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
                         {CATEGORY_LABEL[r.category] ?? "—"}
                       </span>
-                    </td>
-                    <td className={`px-4 py-2.5 text-right tabular-nums ${isOut ? "text-gray-300" : "text-emerald-700 font-medium"}`}>
-                      {isOut ? "" : formatKes(r.amount)}
-                    </td>
-                    <td className={`px-4 py-2.5 text-right tabular-nums ${isOut ? "text-rose-700 font-medium" : "text-gray-300"}`}>
-                      {isOut ? formatKes(r.amount) : ""}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-          <tfoot>
-            {/* Two per-column add buttons. Each pre-fills the modal's
-                direction so users don't have to pick it themselves. */}
-            <tr className="border-t border-gray-100">
-              <td colSpan={3}></td>
-              <td className="px-4 py-2 text-right">
-                <button
-                  onClick={() => {
-                    setForm({ ...initialForm(), direction: DIRECTION_INFLOW, category: 2 });
-                    setShowModal(true);
-                  }}
-                  className="text-xs font-medium text-emerald-700 hover:text-emerald-800 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-md transition"
-                >
-                  + Add inflow
-                </button>
-              </td>
-              <td className="px-4 py-2 text-right">
-                <button
-                  onClick={() => {
-                    setForm({ ...initialForm(), direction: DIRECTION_OUTFLOW, category: 5 });
-                    setShowModal(true);
-                  }}
-                  className="text-xs font-medium text-rose-700 hover:text-rose-800 border border-rose-200 hover:border-rose-400 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-md transition"
-                >
-                  + Add outflow
-                </button>
-              </td>
-            </tr>
-            <tr className="bg-gray-50 border-t-2 border-gray-200">
-              <td colSpan={3} className="px-4 py-3 text-right text-xs uppercase tracking-wide font-semibold text-gray-600">
-                Totals for {MONTH_NAMES[month - 1]} {year}
-              </td>
-              <td className="px-4 py-3 text-right tabular-nums font-semibold text-emerald-700">
-                {formatKes(totals.inflow)}
-              </td>
-              <td className="px-4 py-3 text-right tabular-nums font-semibold text-rose-700">
-                {formatKes(totals.outflow)}
-              </td>
-            </tr>
-            <tr className="bg-gray-900">
-              <td colSpan={3} className="px-4 py-4 text-right text-sm uppercase tracking-wider font-semibold text-gray-300">
-                Running balance
-              </td>
-              <td
-                colSpan={2}
-                className={`px-4 py-4 text-right text-2xl font-bold tabular-nums ${
-                  totals.balance < 0 ? "text-rose-400" : "text-emerald-300"
-                }`}
-              >
-                KES {formatKes(totals.balance)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+                      <span className={`text-[11px] font-semibold uppercase tracking-wide ${
+                        isOut ? "text-rose-600" : "text-emerald-600"
+                      }`}>
+                        {isOut ? "Outflow" : "Inflow"}
+                      </span>
+                    </div>
+                    {r.description ? (
+                      <div className="text-sm text-gray-800 mt-1 break-words">{r.description}</div>
+                    ) : (
+                      <div className="text-sm text-gray-400 mt-1">No description</div>
+                    )}
+                    <div className="text-xs text-gray-500 mt-1">{r.date}</div>
+                  </div>
+                  <div
+                    className={`text-lg sm:text-xl font-bold tabular-nums whitespace-nowrap ${
+                      isOut ? "text-rose-700" : "text-emerald-700"
+                    }`}
+                  >
+                    {isOut ? "−" : "+"} {formatKes(r.amount)}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Running balance summary block. Kept large & legible at mobile width. */}
+      <div className="bg-gray-900 rounded-lg shadow-sm px-4 py-4 sm:px-6 sm:py-5">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-gray-400">
+            Totals for {MONTH_NAMES[month - 1]} {year}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <div className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">Inflows</div>
+            <div className="text-sm sm:text-base font-semibold tabular-nums text-emerald-300">
+              {formatKes(totals.inflow)}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">Outflows</div>
+            <div className="text-sm sm:text-base font-semibold tabular-nums text-rose-400">
+              {formatKes(totals.outflow)}
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-gray-700 pt-3 flex items-baseline justify-between gap-3">
+          <div className="text-xs sm:text-sm uppercase tracking-wider font-semibold text-gray-300">
+            Running balance
+          </div>
+          <div
+            className={`text-xl sm:text-2xl font-bold tabular-nums ${
+              totals.balance < 0 ? "text-rose-400" : "text-emerald-300"
+            }`}
+          >
+            KES {formatKes(totals.balance)}
+          </div>
+        </div>
       </div>
 
       {showModal && (
         <div
-          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
           onClick={() => !saving && setShowModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl w-full max-w-lg"
+            className="bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-lg max-h-[95vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-6 py-4 border-b">
+            <div className="px-4 sm:px-6 py-4 border-b">
               <h3 className="text-lg font-semibold">
                 {form.direction === DIRECTION_OUTFLOW ? "Add outflow" : "Add inflow"}
               </h3>
               <p className="text-xs text-gray-500 mt-1">Record an inflow (income) or outflow (expense).</p>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-2">Direction</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -394,18 +431,18 @@ export default function FinancesPage() {
                 />
               </div>
             </div>
-            <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-2">
+            <div className="px-4 sm:px-6 py-4 border-t bg-gray-50 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
               <button
                 onClick={() => setShowModal(false)}
                 disabled={saving}
-                className="px-4 py-2 rounded-md text-sm border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2 rounded-md text-sm border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={save}
                 disabled={saving || !form.amount}
-                className="px-4 py-2 rounded-md text-sm bg-red-700 hover:bg-red-800 text-white disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2 rounded-md text-sm bg-red-700 hover:bg-red-800 text-white disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save"}
               </button>
