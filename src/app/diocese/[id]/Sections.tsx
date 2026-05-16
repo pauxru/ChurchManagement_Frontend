@@ -6,6 +6,9 @@
 // presentation — the page owns all the data wiring.
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { apiFetch } from "@/lib/apiClient";
 import { clergyDisplayName, rankGradient } from "@/lib/clergyDisplay";
 import type {
   BishopRow,
@@ -24,9 +27,55 @@ interface BishopsListProps {
   bishops: BishopRow[];
   inChargeId: number | null;
   publicById: Map<number, ClergyPublic>;
+  dioceseId: number;
+  // Parent re-fetches the overview when in-charge changes. Optional
+  // because some callers (e.g. tests, storyboards) may not wire it.
+  onChange?: () => void;
 }
 
-export function BishopsList({ bishops, inChargeId, publicById }: BishopsListProps) {
+export function BishopsList({
+  bishops,
+  inChargeId,
+  publicById,
+  dioceseId,
+  onChange,
+}: BishopsListProps) {
+  const { data: session } = useSession();
+  const token = session?.accessToken;
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Auto-dismiss inline error after 4s.
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(null), 4000);
+    return () => clearTimeout(t);
+  }, [error]);
+
+  const canToggle = bishops.length >= 2;
+
+  async function setInCharge(bishopClergyId: number) {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await apiFetch(`/Admin/diocese/${dioceseId}/in-charge-bishop`, token, {
+        method: "PUT",
+        json: { bishopClergyId },
+      });
+      onChange?.();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to update in-charge bishop.";
+      setError(
+        msg === "Forbidden"
+          ? "You don't have permission to change the in-charge bishop."
+          : msg,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <section>
       <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-2 mb-4">
@@ -71,15 +120,33 @@ export function BishopsList({ bishops, inChargeId, publicById }: BishopsListProp
                     Ordained {b.ordinationDate?.slice(0, 4) ?? "—"}
                   </div>
                 </div>
-                {isInCharge && (
+                {isInCharge ? (
                   <span className="bg-yellow-100 text-yellow-900 text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded">
                     In-charge
                   </span>
-                )}
+                ) : canToggle ? (
+                  <button
+                    type="button"
+                    onClick={() => setInCharge(b.clergyID)}
+                    disabled={busy}
+                    title="Mark this bishop as the diocese's in-charge"
+                    className="text-xs text-red-700 hover:underline px-2 py-1 disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
+                  >
+                    Make in-charge
+                  </button>
+                ) : null}
               </li>
             );
           })}
         </ul>
+      )}
+      {error && (
+        <div
+          role="alert"
+          className="mt-3 text-xs bg-red-50 border border-red-200 text-red-900 rounded px-3 py-2"
+        >
+          {error}
+        </div>
       )}
     </section>
   );

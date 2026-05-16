@@ -11,7 +11,7 @@
 // official roll-ups; everything else degrades silently.
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
@@ -106,6 +106,124 @@ export default function DioceseOverviewPage() {
   const [events, setEvents] = useState<EventDto[]>([]);
   const [transfers, setTransfers] = useState<TransferDto[]>([]);
 
+  // Track the latest in-flight load so out-of-order refreshes (e.g. the
+  // bishop in-charge toggle firing while the initial load is still
+  // settling) don't overwrite newer data with older.
+  const loadIdRef = useRef(0);
+
+  const loadAll = useCallback(async () => {
+    if (!dioceseId || !token) return;
+
+    const myLoadId = ++loadIdRef.current;
+    const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
+
+    setLoading(true);
+
+    // Phase 1: fetch everything that doesn't depend on the overview's
+    // parish names. Run in parallel; degrade per-promise.
+    const overviewP = apiFetch<Overview>(
+      `/Bishop/diocese/${dioceseId}/overview`,
+      token,
+    );
+    const parishesP = apiFetch<ParishRow[]>(
+      `/Churches/diocese-parishes/${dioceseId}`,
+      token,
+    );
+    const dioceseClergyP = apiFetch<ClergyApiRow[]>(
+      `/Clergy/diocese/${dioceseId}`,
+      token,
+    );
+    const settingsP = apiFetch<DioceseSettings>(
+      `/Admin/diocese/${dioceseId}/settings`,
+      token,
+    );
+    const transfersP = apiFetch<TransferDto[]>(
+      `/Bishop/transfers?dioceseId=${dioceseId}`,
+      token,
+    );
+    const publicClergyP = fetch(`${base}/public/clergy`).then((r) =>
+      r.ok ? (r.json() as Promise<ClergyPublic[]>) : Promise.reject(),
+    );
+    const eventsP = fetch(`${base}/public/events`).then((r) =>
+      r.ok ? (r.json() as Promise<EventDto[]>) : Promise.reject(),
+    );
+
+    const [
+      overviewR,
+      parishesR,
+      dioceseClergyR,
+      settingsR,
+      transfersR,
+      publicClergyR,
+      eventsR,
+    ] = await Promise.allSettled([
+      overviewP,
+      parishesP,
+      dioceseClergyP,
+      settingsP,
+      transfersP,
+      publicClergyP,
+      eventsP,
+    ]);
+
+    if (myLoadId !== loadIdRef.current) return;
+
+    // Overview is the spine — surface its error if it failed. Other
+    // sections live without it but we still need the page to know.
+    if (overviewR.status === "rejected") {
+      setOverviewError(
+        overviewR.reason instanceof Error
+          ? overviewR.reason.message
+          : "Could not load diocese overview.",
+      );
+    } else {
+      setOverviewError(null);
+      setOverview(overviewR.value);
+    }
+    const parishRows = settled<ParishRow[]>(parishesR, []);
+    setParishes(parishRows);
+    setDioceseClergy(settled<ClergyApiRow[]>(dioceseClergyR, []));
+    setSettings(settled<DioceseSettings | null>(settingsR, null));
+    setTransfers(settled<TransferDto[]>(transfersR, []));
+    setPublicClergy(settled<ClergyPublic[]>(publicClergyR, []));
+    setEvents(settled<EventDto[]>(eventsR, []));
+
+    // Phase 2: parish + LC clergy walks. These give us the in-charge
+    // pastor per parish (parish-grid) and contribute to the clergy
+    // distribution count. Same pattern the transfers Board uses.
+    // Many requests, low priority — fire after the main paint.
+    const overviewVal = overviewR.status === "fulfilled" ? overviewR.value : null;
+    const lcIds = overviewVal?.localChurches.map((l) => l.localChurchId) ?? [];
+
+    const parishClergyResults = await Promise.allSettled(
+      parishRows.map((p) =>
+        apiFetch<ClergyApiRow[]>(`/Clergy/parish/${p.parishId}`, token),
+      ),
+    );
+    const lcClergyResults = await Promise.allSettled(
+      lcIds.map((id) =>
+        apiFetch<ClergyApiRow[]>(`/Clergy/localChurch/${id}`, token),
+      ),
+    );
+
+    if (myLoadId !== loadIdRef.current) return;
+
+    const parishMap = new Map<number, ClergyApiRow[]>();
+    parishRows.forEach((p, idx) => {
+      const r = parishClergyResults[idx];
+      parishMap.set(p.parishId, settled<ClergyApiRow[]>(r, []));
+    });
+    setParishClergy(parishMap);
+
+    const lcRows: ClergyApiRow[] = [];
+    lcClergyResults.forEach((r) => {
+      if (r.status === "fulfilled") lcRows.push(...r.value);
+    });
+    setLcClergy(lcRows);
+
+    setLoading(false);
+  }, [dioceseId, token]);
+
   useEffect(() => {
     // Wait for next-auth to settle. Unauthenticated visitors get a
     // friendly sign-in CTA below; we don't kick off fetches that would
@@ -116,121 +234,16 @@ export default function DioceseOverviewPage() {
       setLoading(false);
       return;
     }
-
-    let cancelled = false;
-    const base = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
-
-    (async () => {
-      setLoading(true);
-
-      // Phase 1: fetch everything that doesn't depend on the overview's
-      // parish names. Run in parallel; degrade per-promise.
-      const overviewP = apiFetch<Overview>(
-        `/Bishop/diocese/${dioceseId}/overview`,
-        token,
-      );
-      const parishesP = apiFetch<ParishRow[]>(
-        `/Churches/diocese-parishes/${dioceseId}`,
-        token,
-      );
-      const dioceseClergyP = apiFetch<ClergyApiRow[]>(
-        `/Clergy/diocese/${dioceseId}`,
-        token,
-      );
-      const settingsP = apiFetch<DioceseSettings>(
-        `/Admin/diocese/${dioceseId}/settings`,
-        token,
-      );
-      const transfersP = apiFetch<TransferDto[]>(
-        `/Bishop/transfers?dioceseId=${dioceseId}`,
-        token,
-      );
-      const publicClergyP = fetch(`${base}/public/clergy`).then((r) =>
-        r.ok ? (r.json() as Promise<ClergyPublic[]>) : Promise.reject(),
-      );
-      const eventsP = fetch(`${base}/public/events`).then((r) =>
-        r.ok ? (r.json() as Promise<EventDto[]>) : Promise.reject(),
-      );
-
-      const [
-        overviewR,
-        parishesR,
-        dioceseClergyR,
-        settingsR,
-        transfersR,
-        publicClergyR,
-        eventsR,
-      ] = await Promise.allSettled([
-        overviewP,
-        parishesP,
-        dioceseClergyP,
-        settingsP,
-        transfersP,
-        publicClergyP,
-        eventsP,
-      ]);
-
-      if (cancelled) return;
-
-      // Overview is the spine — surface its error if it failed. Other
-      // sections live without it but we still need the page to know.
-      if (overviewR.status === "rejected") {
-        setOverviewError(
-          overviewR.reason instanceof Error
-            ? overviewR.reason.message
-            : "Could not load diocese overview.",
-        );
-      } else {
-        setOverview(overviewR.value);
-      }
-      const parishRows = settled<ParishRow[]>(parishesR, []);
-      setParishes(parishRows);
-      setDioceseClergy(settled<ClergyApiRow[]>(dioceseClergyR, []));
-      setSettings(settled<DioceseSettings | null>(settingsR, null));
-      setTransfers(settled<TransferDto[]>(transfersR, []));
-      setPublicClergy(settled<ClergyPublic[]>(publicClergyR, []));
-      setEvents(settled<EventDto[]>(eventsR, []));
-
-      // Phase 2: parish + LC clergy walks. These give us the in-charge
-      // pastor per parish (parish-grid) and contribute to the clergy
-      // distribution count. Same pattern the transfers Board uses.
-      // Many requests, low priority — fire after the main paint.
-      const overviewVal = overviewR.status === "fulfilled" ? overviewR.value : null;
-      const lcIds = overviewVal?.localChurches.map((l) => l.localChurchId) ?? [];
-
-      const parishClergyResults = await Promise.allSettled(
-        parishRows.map((p) =>
-          apiFetch<ClergyApiRow[]>(`/Clergy/parish/${p.parishId}`, token),
-        ),
-      );
-      const lcClergyResults = await Promise.allSettled(
-        lcIds.map((id) =>
-          apiFetch<ClergyApiRow[]>(`/Clergy/localChurch/${id}`, token),
-        ),
-      );
-
-      if (cancelled) return;
-
-      const parishMap = new Map<number, ClergyApiRow[]>();
-      parishRows.forEach((p, idx) => {
-        const r = parishClergyResults[idx];
-        parishMap.set(p.parishId, settled<ClergyApiRow[]>(r, []));
-      });
-      setParishClergy(parishMap);
-
-      const lcRows: ClergyApiRow[] = [];
-      lcClergyResults.forEach((r) => {
-        if (r.status === "fulfilled") lcRows.push(...r.value);
-      });
-      setLcClergy(lcRows);
-
-      setLoading(false);
-    })();
-
+    void loadAll();
+    // Capture the ref object (not .current) for cleanup so the
+    // react-hooks/exhaustive-deps lint doesn't fire on a stale .current
+    // read. On unmount / dep-change, invalidate any in-flight load so
+    // its setState calls become no-ops.
+    const ref = loadIdRef;
     return () => {
-      cancelled = true;
+      ref.current++;
     };
-  }, [dioceseId, token, sessionStatus]);
+  }, [dioceseId, token, sessionStatus, loadAll]);
 
   if (sessionStatus === "loading" || (loading && !overview && !overviewError)) {
     return <PageSkeleton />;
@@ -372,6 +385,8 @@ export default function DioceseOverviewPage() {
             bishops={overview.bishops}
             inChargeId={inChargeId}
             publicById={publicById}
+            dioceseId={overview.dioceseId}
+            onChange={loadAll}
           />
           <ClergyDistribution clergy={allClergy} />
         </div>
