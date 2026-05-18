@@ -44,11 +44,23 @@ interface Profile {
   emergencyContactPhone: string | null;
 }
 
+// Phase 5 of the groups + five-tier RBAC redesign — mirrors the backend
+// WorkspaceHint record returned by GET /Auth/workspaces. Cached on the
+// session JWT alongside `profile` so the UserMenu "Working as" switcher
+// renders without an extra round trip on every navigation.
+interface Workspace {
+  url: string;
+  label: string;
+  tierRank: number;
+  roleType: string;
+}
+
 declare module "next-auth" {
   interface Session {
     accessToken?: string;
     error?: string;
     profile?: Profile;
+    workspaces?: Workspace[];
     user: {
       oid?: string;
       roles?: string[];
@@ -68,6 +80,8 @@ interface EntraJwt {
   error?: string;
   profile?: Profile;
   profileFetchedAt?: number;
+  workspaces?: Workspace[];
+  workspacesFetchedAt?: number;
   [key: string]: unknown;
 }
 
@@ -118,6 +132,25 @@ async function fetchProfile(accessToken: string): Promise<Profile | undefined> {
   }
 }
 
+// Phase 5 — fetch every workspace the caller can reach and cache on the
+// JWT so the UserMenu "Working as" switcher renders without round-tripping
+// on every navigation. Refreshes on the same 5-minute cadence as the
+// profile cache so newly granted scopes (e.g. RoleAdmin → grant) show up
+// without a full sign-out/sign-in.
+async function fetchWorkspaces(accessToken: string): Promise<Workspace[] | undefined> {
+  try {
+    const res = await fetch(`${apiBase}/Auth/workspaces`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return undefined;
+    return (await res.json()) as Workspace[];
+  } catch (e) {
+    console.error("fetchWorkspaces failed", e);
+    return undefined;
+  }
+}
+
 const PROFILE_REFRESH_MS = 5 * 60 * 1000;
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -149,6 +182,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (t.accessToken) {
           t.profile = await fetchProfile(t.accessToken);
           t.profileFetchedAt = Date.now();
+          t.workspaces = await fetchWorkspaces(t.accessToken);
+          t.workspacesFetchedAt = Date.now();
         }
         return t;
       }
@@ -166,6 +201,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         working.profileFetchedAt = Date.now();
       }
 
+      // Refresh workspaces on the same cadence — RoleAdmin grant/revoke
+      // flows should propagate without forcing a sign-out.
+      if (working.accessToken
+          && (!working.workspacesFetchedAt || Date.now() - working.workspacesFetchedAt > PROFILE_REFRESH_MS)) {
+        working.workspaces = await fetchWorkspaces(working.accessToken);
+        working.workspacesFetchedAt = Date.now();
+      }
+
       return working;
     },
     async session({ session, token }) {
@@ -173,6 +216,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.accessToken = t.accessToken;
       session.error = t.error;
       session.profile = t.profile;
+      session.workspaces = t.workspaces;
       session.user.oid = t.oid;
       session.user.roles = t.roles;
       return session;

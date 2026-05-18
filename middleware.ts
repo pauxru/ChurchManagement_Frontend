@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth, OfficialVerificationStatus } from "@/auth";
 
+// Backend base URL for the /Auth/landing redirect probe. Mirrors the same
+// env var used by src/auth.ts so the middleware doesn't need its own
+// configuration knob.
+const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
+
 // Routes a signed-in but unverified user MAY still reach.
 //   - the verification flow itself
 //   - sign-out / auth endpoints
@@ -69,6 +74,33 @@ export default auth(async (req) => {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
+  const accessToken = req.auth?.accessToken;
+
+  // Phase 5 — role-aware landing redirect. When a signed-in user hits the
+  // bare root, ask the backend's IRoleResolver for their highest-tier
+  // workspace and bounce them there. Replaces the legacy "find a verified
+  // LC official scope" snippet: /Auth/landing covers every tier in the
+  // five-tier RBAC catalog (Admin, Bishop, Parish, LC, GroupLeader…).
+  //
+  // 204 → user has no active role scope, fall through to the home page.
+  // network blip → also fall through; never block on this probe.
+  if (pathname === "/" && accessToken) {
+    try {
+      const res = await fetch(`${apiBase}/Auth/landing`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: "no-store",
+      });
+      if (res.status === 200) {
+        const hint = await res.json();
+        if (hint?.url && hint.url !== "/") {
+          return NextResponse.redirect(new URL(hint.url, req.url));
+        }
+      }
+    } catch {
+      // Swallow — a transient API hiccup shouldn't block the landing page.
+    }
+  }
+
   // Verification globally disabled — every signed-in user roams freely.
   if (!REQUIRE_VERIFICATION) {
     return NextResponse.next();
@@ -78,17 +110,6 @@ export default auth(async (req) => {
   const isAdmin = roles.includes("Admin");
   const officials = req.auth.profile?.officials ?? [];
   const isVerified = officials.some(o => o.status === OfficialVerificationStatus.Verified);
-
-  // Auto-redirect a verified LC official from the bare root to their LC
-  // workspace. Admins stay on "/" to see the landing page + diocese overview.
-  if (pathname === "/" && !isAdmin) {
-    const verified = officials.find(
-      o => o.status === OfficialVerificationStatus.Verified && o.localChurchId,
-    );
-    if (verified?.localChurchId) {
-      return NextResponse.redirect(new URL(`/lc/${verified.localChurchId}`, req.url));
-    }
-  }
 
   // Signed in but NOT verified and NOT admin: lock the session to the
   // verification flow + a small allowlist. Any other route bounces back

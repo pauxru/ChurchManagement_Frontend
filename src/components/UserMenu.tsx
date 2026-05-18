@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/apiClient";
@@ -67,6 +67,7 @@ interface Props {
 export function UserMenu({ size = 36 }: Props) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -136,6 +137,10 @@ export function UserMenu({ size = 36 }: Props) {
   const email = profile?.email || user.email || "";
   const occupation = profile?.occupation ?? null;
   const officials = profile?.officials ?? [];
+  // Phase 5 — workspaces cached on the session JWT by auth.ts. Render the
+  // "Working as" switcher only when the user holds ≥ 2 roles; a single-role
+  // user doesn't need a switcher (the active route IS their workspace).
+  const workspaces = session.workspaces ?? [];
   // Prefer the explicit ProfilePhotoUrl the user typed in over the Entra image.
   // If we have a user-supplied URL we render with <img> (next/image's domain
   // allowlist would reject arbitrary hosts); Entra images go through next/image
@@ -256,6 +261,33 @@ export function UserMenu({ size = 36 }: Props) {
               </div>
             ))}
           </div>
+
+          {/* Phase 5 — "Working as" workspace switcher. Renders only when
+              the user holds ≥ 2 workspaces (single-role users don't need a
+              switcher). The active workspace gets a leading bullet + bold
+              red text so it stands out from the navigation links below. */}
+          {workspaces.length >= 2 && (
+            <div role="none">
+              <div className="px-4 py-2 text-[10px] uppercase tracking-wider text-gray-500 font-semibold border-t">
+                Working as
+              </div>
+              {workspaces.map((w) => {
+                const isCurrent = pathname === w.url || pathname?.startsWith(w.url + "/");
+                return (
+                  <Link
+                    key={`${w.url}-${w.roleType}`}
+                    href={w.url}
+                    onClick={() => setOpen(false)}
+                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isCurrent ? "font-semibold text-red-700" : ""}`}
+                    role="menuitem"
+                  >
+                    {isCurrent && <span className="mr-1">●</span>}
+                    {w.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
 
           {/* Links */}
           <nav className="py-1" role="none">
