@@ -74,6 +74,13 @@ const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5132";
 interface EntraJwt {
   accessToken?: string;
   refreshToken?: string;
+  // Persisted from the initial sign-in so /api/auth/federated-signout can
+  // pass it as id_token_hint to Entra's /oauth2/v2.0/logout — that tells
+  // Entra exactly which session to terminate, makes the prompt silent, and
+  // revokes that session's refresh tokens server-side. Kept on the JWT only
+  // (never copied into `session` — id_token is sensitive and the session
+  // object ships to the browser).
+  idToken?: string;
   expiresAt?: number;
   oid?: string;
   roles?: string[];
@@ -176,6 +183,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account && profile) {
         t.accessToken = account.access_token as string | undefined;
         t.refreshToken = account.refresh_token as string | undefined;
+        t.idToken = account.id_token as string | undefined;
         t.expiresAt = account.expires_at as number | undefined;
         t.oid = (profile as { oid?: string }).oid;
         t.roles = ((profile as { roles?: string[] }).roles) ?? [];
