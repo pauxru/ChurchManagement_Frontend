@@ -47,6 +47,11 @@ interface LcDetail {
   denomination: string | null;
   patronSaint: string | null;
   motto: string | null;
+  // Parent IDs (added Phase 6 — groups + five-tier RBAC). Powers the
+  // "View parish dashboard" link in the hero. Nullable when the LC isn't
+  // joined to a parish / diocese row in the database.
+  parishId: number | null;
+  dioceseId: number | null;
 }
 
 function formatKes(amount: number | null | undefined): string {
@@ -198,6 +203,19 @@ export default function LcOverviewPage() {
                 {lc.parishName && lc.dioceseName && <> · </>}
                 {lc.dioceseName && <>{lc.dioceseName.replace(/\s+Diocese$/i, "")} Diocese</>}
               </p>
+            )}
+            {/* Outbound link to the parish dashboard (Phase 6 — spec
+                docs/superpowers/specs/2026-05-18-groups-three-tier-design.md).
+                Rendered without role gating; the parish page itself 403s if
+                the caller doesn't have scope. */}
+            {lc.parishId != null && (
+              <Link
+                href={`/parish/${lc.parishId}`}
+                className="mt-2 inline-flex items-center gap-1 text-sm text-yellow-200 hover:text-yellow-100 underline-offset-4 hover:underline"
+              >
+                View parish dashboard
+                <span aria-hidden>→</span>
+              </Link>
             )}
           </div>
         </div>
